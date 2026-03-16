@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hotel System PRO - Queue & Calendar</title>
+    <title>Hotel System PRO - Full UI & Backup</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
@@ -16,19 +16,20 @@
         .header { background: linear-gradient(135deg, var(--primary), #1e293b); color: white; padding: 25px 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .stat-card { border-radius: 12px; border: none; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
-        /* Room Grid */
+        /* Room Grid - เปลี่ยนมาใช้สีพื้นหลังเต็มใบ */
         .room-card {
-            border-radius: 12px; border: 2px solid #e2e8f0; background: white;
+            border-radius: 12px; border: none; color: white;
             transition: 0.2s; cursor: pointer; position: relative; min-height: 110px;
         }
-        .room-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px -3px rgba(0,0,0,0.1); }
-        .status-available { border-top: 6px solid var(--success); }
-        .status-occupied { border-top: 6px solid var(--danger); }
+        .room-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px -3px rgba(0,0,0,0.2); filter: brightness(1.1); }
+        
+        .status-available { background-color: var(--success); }
+        .status-occupied { background-color: var(--danger); }
         
         .has-future::after {
             content: "มีคิวจอง"; position: absolute; top: 8px; right: 8px;
             background: var(--warning); color: #000; font-size: 0.7rem;
-            padding: 2px 6px; border-radius: 10px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            padding: 3px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         /* Calendar Timeline */
@@ -47,6 +48,17 @@
     </div>
 
     <div class="container">
+        
+        <div class="d-flex justify-content-end gap-2 mb-3">
+            <button class="btn btn-dark btn-sm shadow-sm" onclick="exportData()">
+                <i class="bi bi-download"></i> สำรองข้อมูล
+            </button>
+            <label class="btn btn-outline-dark btn-sm shadow-sm mb-0">
+                <i class="bi bi-upload"></i> กู้คืนข้อมูล
+                <input type="file" id="importFile" accept=".json" class="d-none" onchange="importData(event)">
+            </label>
+        </div>
+
         <div class="row g-3 mb-4 text-center">
             <div class="col-6 col-md-3">
                 <div class="card stat-card bg-white p-3 border-start border-success border-4">
@@ -168,7 +180,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // --- โครงสร้างข้อมูล ---
-        // roomsData = { "101": [ {id, name, cin, cout, price, total} ], ... }
         let roomsData = JSON.parse(localStorage.getItem('hotel_queue_rooms')) || {};
         let incomeData = JSON.parse(localStorage.getItem('hotel_queue_income')) || {};
         
@@ -176,7 +187,6 @@
         const modalObj = new bootstrap.Modal(document.getElementById('roomModal'));
         const totalRooms = 20; // จำนวนห้องพัก (101 - 120)
 
-        // Utility: ดึงวันที่วันนี้ (YYYY-MM-DD) ตามเวลาท้องถิ่น
         function getTodayStr() {
             const d = new Date();
             d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
@@ -184,7 +194,6 @@
         }
 
         function init() {
-            // สร้างโครงสร้างห้องเปล่าๆ ถ้ายังไม่มีข้อมูล
             for(let i=101; i<=100+totalRooms; i++) {
                 if(!roomsData[i]) roomsData[i] = [];
             }
@@ -203,7 +212,7 @@
             updateStats();
         }
 
-        // --- 1. แสดงผลแบบ แผนผังห้อง (Grid View) ---
+        // --- 1. แสดงผลแบบ แผนผังห้อง (Grid View) สีเต็มกล่อง ---
         function renderGrid() {
             const container = document.getElementById('roomContainer');
             container.innerHTML = "";
@@ -212,23 +221,20 @@
             for(let i=101; i<=100+totalRooms; i++) {
                 const bookings = roomsData[i];
                 
-                // หาว่าวันนี้มีคนพักไหม (cin <= today AND cout > today)
                 const active = bookings.find(b => b.cin <= today && b.cout > today);
-                // หาว่ามีคิวจองในอนาคตไหม (cin > today)
                 const hasFuture = bookings.some(b => b.cin > today);
 
                 const statusClass = active ? 'status-occupied' : 'status-available';
                 const futureClass = hasFuture ? 'has-future' : '';
-                const displayName = active ? active.name : 'ว่าง';
-                const nameColor = active ? 'text-danger' : 'text-success';
-                const icon = active ? 'bi-door-closed-fill' : 'bi-door-open';
+                const displayName = active ? active.name : 'ว่างพร้อมใช้';
+                const icon = active ? 'bi-door-closed-fill' : 'bi-door-open-fill'; // ไอคอนแบบทึบ
 
                 container.innerHTML += `
                     <div class="col-6 col-md-3 col-lg-2">
                         <div class="room-card ${statusClass} ${futureClass} p-3 text-center" onclick="openRoom(${i})">
                             <h4 class="fw-bold mb-1">${i}</h4>
-                            <i class="bi ${icon} fs-2 text-muted mb-2"></i>
-                            <div class="small fw-bold ${nameColor} text-truncate">${displayName}</div>
+                            <i class="bi ${icon} fs-2 opacity-75 mb-2"></i>
+                            <div class="small fw-bold text-truncate">${displayName}</div>
                         </div>
                     </div>
                 `;
@@ -241,9 +247,8 @@
             const year = todayD.getFullYear();
             const month = todayD.getMonth();
             const todayStr = getTodayStr();
-            const daysInMonth = new Date(year, month + 1, 0).getDate(); // หาจำนวนวันในเดือนนี้
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            // อัปเดตชื่อเดือน
             const monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
             document.getElementById('calendarMonthTitle').innerText = `ตารางการจอง: ${monthNames[month]} ${year}`;
 
@@ -261,14 +266,11 @@
                     const dateCheck = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                     const isTodayCol = (dateCheck === todayStr) ? 'cell-today-col' : '';
                     
-                    // เช็คว่าวันนี้ของห้องนี้ อยู่ในคิวจองไหนหรือไม่?
                     const booking = roomsData[i].find(b => dateCheck >= b.cin && dateCheck < b.cout);
                     
                     if(booking) {
-                        // วันนี้ถูกจอง/เข้าพัก
                         html += `<td class="cell-booked" title="${booking.name} (${booking.cin} ถึง ${booking.cout})"></td>`;
                     } else {
-                        // วันนี้ว่าง
                         html += `<td class="${isTodayCol}"></td>`;
                     }
                 }
@@ -285,7 +287,6 @@
             const today = getTodayStr();
             const bookings = roomsData[roomNum];
 
-            // A. จัดการส่วน "ผู้เข้าพักปัจจุบัน"
             const active = bookings.find(b => b.cin <= today && b.cout > today);
             const activeBox = document.getElementById('activeGuestBox');
             if(active) {
@@ -293,20 +294,17 @@
                 document.getElementById('active-name').innerText = active.name;
                 document.getElementById('active-dates').innerText = `${active.cin} ถึง ${active.cout}`;
                 document.getElementById('active-total').innerText = `฿${active.total.toLocaleString()}`;
-                // เก็บ id ไว้ใช้ตอน Check-out
                 activeBox.dataset.activeId = active.id; 
             } else {
                 activeBox.classList.add('d-none');
             }
 
-            // B. จัดการส่วน "คิวจองล่วงหน้า"
             const futures = bookings.filter(b => b.cin > today);
             const listDiv = document.getElementById('futureList');
             if(futures.length === 0) {
                 listDiv.innerHTML = '<div class="text-center text-muted small py-2">ไม่มีคิวจองล่วงหน้า</div>';
             } else {
                 listDiv.innerHTML = "";
-                // เรียงตามวันเข้าพัก
                 futures.sort((a,b) => a.cin.localeCompare(b.cin)).forEach(b => {
                     listDiv.innerHTML += `
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
@@ -320,7 +318,6 @@
                 });
             }
 
-            // C. Reset ฟอร์มเพิ่มรายการ
             document.getElementById('guestName').value = "";
             document.getElementById('cin').value = today;
             let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
@@ -354,16 +351,13 @@
             if(!name) return alert("กรุณาระบุชื่อลูกค้า");
             if(cin >= cout) return alert("วันที่ Check-out ต้องอยู่หลังจากวันที่ Check-in");
 
-            // *** ตรวจสอบการจองซ้อน (Conflict Check) ***
-            // ถ้า (วันเข้าใหม่ < วันออกเดิม) และ (วันออกใหม่ > วันเข้าเดิม) แสดงว่าทับกัน!
             const isConflict = roomsData[currentRoom].some(b => (cin < b.cout && cout > b.cin));
             if(isConflict) {
                 return alert("❌ ไม่สามารถบันทึกได้!\nช่วงเวลาที่คุณเลือกมีการจองทับซ้อนกับคิวอื่นในระบบ กรุณาเลือกวันอื่น");
             }
 
-            // ผ่านการตรวจสอบ เพิ่มเข้าระบบ
             const newBooking = {
-                id: Date.now().toString(), // สร้าง ID แบบสุ่ม
+                id: Date.now().toString(),
                 name: name,
                 cin: cin,
                 cout: cout,
@@ -372,9 +366,7 @@
             };
 
             roomsData[currentRoom].push(newBooking);
-            save();
-            refreshAll();
-            modalObj.hide();
+            save(); refreshAll(); modalObj.hide();
         }
 
         function checkout() {
@@ -383,27 +375,18 @@
             const activeId = document.getElementById('activeGuestBox').dataset.activeId;
             const today = getTodayStr();
             
-            // หาข้อมูลคนที่จะ checkout
             const bookingToCheckout = roomsData[currentRoom].find(b => b.id === activeId);
             if(bookingToCheckout) {
-                // บันทึกรายได้
                 incomeData[today] = (incomeData[today] || 0) + bookingToCheckout.total;
-                
-                // ลบรายการนี้ออกจาก Array ของห้อง
                 roomsData[currentRoom] = roomsData[currentRoom].filter(b => b.id !== activeId);
-                
-                save();
-                refreshAll();
-                modalObj.hide();
+                save(); refreshAll(); modalObj.hide();
             }
         }
 
         function cancelBooking(bookingId) {
             if(!confirm("ต้องการลบรายการจองล่วงหน้านี้ใช่หรือไม่?")) return;
             roomsData[currentRoom] = roomsData[currentRoom].filter(b => b.id !== bookingId);
-            save();
-            openRoom(currentRoom); // Refresh modal
-            refreshAll();
+            save(); openRoom(currentRoom); refreshAll();
         }
 
         // --- 4. สรุปสถิติ ---
@@ -425,6 +408,52 @@
             
             const todayIncome = incomeData[today] || 0;
             document.getElementById('stat-income').innerText = `฿${todayIncome.toLocaleString()}`;
+        }
+
+        // --- 5. ระบบ Backup & Restore ---
+        function exportData() {
+            const exportDataStr = JSON.stringify({
+                rooms: roomsData,
+                income: incomeData
+            });
+            
+            // สร้างไฟล์จำลองเพื่อ Download
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(exportDataStr);
+            const exportFileDefaultName = 'HotelBackup_' + getTodayStr() + '.json';
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // ตรวจสอบว่าไฟล์ที่โหลดมามีโครงสร้างถูกต้องหรือไม่
+                    if (importedData.rooms && importedData.income) {
+                        roomsData = importedData.rooms;
+                        incomeData = importedData.income;
+                        save(); // เซฟลง LocalStorage ทันที
+                        refreshAll(); // รีเฟรชหน้าจอใหม่
+                        alert("✅ กู้คืนข้อมูลสำเร็จ!");
+                    } else {
+                        alert("❌ ไฟล์ข้อมูลไม่ถูกต้อง (ไม่มีข้อมูล rooms หรือ income)");
+                    }
+                } catch (error) {
+                    alert("❌ เกิดข้อผิดพลาดในการอ่านไฟล์ กรุณาตรวจสอบว่าไฟล์ถูกต้องหรือไม่");
+                }
+                
+                // เคลียร์ค่า input เผื่อต้องการอัปโหลดไฟล์เดิมซ้ำ
+                event.target.value = '';
+            };
+            reader.readAsText(file);
         }
 
         // เริ่มต้นการทำงาน
