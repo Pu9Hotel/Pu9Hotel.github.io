@@ -4,12 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Hotel System Offline</title>
+<title>Hotel System Offline PRO</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
-
 body{
 background:#f1f5f9;
 font-family:system-ui;
@@ -38,12 +37,7 @@ cursor:pointer;
 .reserved{background:#f59e0b}
 .cleaning{background:#6b7280}
 
-.warning{
-border:3px solid yellow;
-}
-
 </style>
-
 </head>
 
 <body>
@@ -56,17 +50,17 @@ border:3px solid yellow;
 
 <div class="col">
 <h6>ว่าง</h6>
-<h4 id="free"></h4>
+<h4 id="free">0</h4>
 </div>
 
 <div class="col">
 <h6>เข้าพัก</h6>
-<h4 id="used"></h4>
+<h4 id="used">0</h4>
 </div>
 
 <div class="col">
 <h6>จอง</h6>
-<h4 id="reservedCount"></h4>
+<h4 id="reservedCount">0</h4>
 </div>
 
 </div>
@@ -107,13 +101,13 @@ border:3px solid yellow;
 
 <input class="form-control mb-2" id="phone" placeholder="เบอร์โทร">
 
-<input class="form-control mb-2" id="price" value="500" onchange="calcStay()">
+<input class="form-control mb-2" id="price" value="500">
 
 <label>วันที่เข้า</label>
-<input class="form-control mb-2" type="date" id="checkin" onchange="calcStay()">
+<input class="form-control mb-2" type="date" id="checkin">
 
 <label>วันที่ออก</label>
-<input class="form-control mb-2" type="date" id="checkout" onchange="calcStay()">
+<input class="form-control mb-2" type="date" id="checkout">
 
 <div class="alert alert-info text-center" id="stayInfo">
 0 คืน | 0 บาท
@@ -121,7 +115,7 @@ border:3px solid yellow;
 
 <button class="btn btn-success w-100 mb-2" onclick="checkinRoom()">Check-in</button>
 
-<button class="btn btn-warning w-100 mb-2" onclick="reserve()">จอง</button>
+<button class="btn btn-warning w-100 mb-2" onclick="reserveRoom()">จอง</button>
 
 <button class="btn btn-danger w-100 mb-2" onclick="checkoutRoom()">Check-out</button>
 
@@ -141,42 +135,40 @@ border:3px solid yellow;
 let rooms = JSON.parse(localStorage.getItem("rooms")) || {}
 let income = JSON.parse(localStorage.getItem("income")) || {}
 
-let currentRoom=null
-
-let roomModal = new bootstrap.Modal(document.getElementById("roomModal"))
+let currentRoom = null
+let modal = new bootstrap.Modal(document.getElementById("roomModal"))
 
 function save(){
-
 localStorage.setItem("rooms",JSON.stringify(rooms))
 localStorage.setItem("income",JSON.stringify(income))
-
 }
 
 function loadRooms(){
 
-let html=""
 let free=0
 let used=0
 let reserved=0
+let html=""
 
 for(let i=101;i<=150;i++){
 
 let r=rooms[i]
-
-let className="available"
+let status="available"
 
 if(r){
 
-if(r.status=="occupied"){className="occupied";used++}
-else if(r.status=="reserved"){className="reserved";reserved++}
-else if(r.status=="cleaning"){className="cleaning"}
+if(r.status==="occupied"){status="occupied";used++}
+else if(r.status==="reserved"){status="reserved";reserved++}
+else if(r.status==="cleaning"){status="cleaning"}
 else free++
 
-}else free++
+}else{
+free++
+}
 
 html+=`
 <div class="col-3">
-<div class="room ${className}" onclick="openRoom(${i})">
+<div class="room ${status}" onclick="openRoom(${i})">
 ${i}
 </div>
 </div>
@@ -184,125 +176,113 @@ ${i}
 
 }
 
-roomsDiv=document.getElementById("rooms")
-roomsDiv.innerHTML=html
-
-freeEl=document.getElementById("free")
-usedEl=document.getElementById("used")
-reservedEl=document.getElementById("reservedCount")
-
-freeEl.innerText=free
-usedEl.innerText=used
-reservedEl.innerText=reserved
+document.getElementById("rooms").innerHTML=html
+document.getElementById("free").innerText=free
+document.getElementById("used").innerText=used
+document.getElementById("reservedCount").innerText=reserved
 
 }
 
 function openRoom(room){
 
 currentRoom=room
-
 document.getElementById("roomTitle").innerText="ห้อง "+room
 
 let r=rooms[room]
 
 if(r){
 
-name.value=r.name||""
-phone.value=r.phone||""
-price.value=r.price||500
-checkin.value=r.checkin||""
-checkout.value=r.checkout||""
+document.getElementById("name").value=r.name||""
+document.getElementById("phone").value=r.phone||""
+document.getElementById("price").value=r.price||500
+document.getElementById("checkin").value=r.checkin||""
+document.getElementById("checkout").value=r.checkout||""
 
 }else{
 
-name.value=""
-phone.value=""
-price.value=500
+document.getElementById("name").value=""
+document.getElementById("phone").value=""
+document.getElementById("price").value=500
 
 let today=new Date().toISOString().slice(0,10)
 
-checkin.value=today
-checkout.value=""
+document.getElementById("checkin").value=today
+document.getElementById("checkout").value=""
 
 }
 
 calcStay()
-
-roomModal.show()
+modal.show()
 
 }
 
 function calcStay(){
 
-let c1=checkin.value
-let c2=checkout.value
-let priceValue=Number(price.value)
+let checkin=document.getElementById("checkin").value
+let checkout=document.getElementById("checkout").value
+let price=Number(document.getElementById("price").value)
 
-if(c1 && c2){
+let nights=0
 
-let nights=(new Date(c2)-new Date(c1))/(1000*60*60*24)
+if(checkin && checkout){
+
+nights=(new Date(checkout)-new Date(checkin))/(1000*60*60*24)
 
 if(nights<=0){
 nights=1
 }
 
-let total=nights*priceValue
+}
 
-stayInfo.innerText=nights+" คืน | "+total+" บาท
+let total=nights*price
+
+document.getElementById("stayInfo").innerText=nights+" คืน | "+total+" บาท"
 
 }
 
-}
+document.getElementById("checkin").addEventListener("change",calcStay)
+document.getElementById("checkout").addEventListener("change",calcStay)
+document.getElementById("price").addEventListener("change",calcStay)
 
 function checkinRoom(){
 
-if(!checkin.value){
-
-checkin.value=new Date().toISOString().slice(0,10)
-
-}
-
 rooms[currentRoom]={
-
 status:"occupied",
-name:name.value,
-phone:phone.value,
-price:Number(price.value),
-checkin:checkin.value,
-checkout:checkout.value
-
+name:document.getElementById("name").value,
+phone:document.getElementById("phone").value,
+price:Number(document.getElementById("price").value),
+checkin:document.getElementById("checkin").value,
+checkout:document.getElementById("checkout").value
 }
 
 save()
 loadRooms()
-
-roomModal.hide()
+modal.hide()
 
 }
 
-function reserve(){
+function reserveRoom(){
 
 rooms[currentRoom]={
-
 status:"reserved",
-name:name.value,
-phone:phone.value,
-price:Number(price.value),
-checkin:checkin.value,
-checkout:checkout.value
-
+name:document.getElementById("name").value,
+phone:document.getElementById("phone").value,
+price:Number(document.getElementById("price").value),
+checkin:document.getElementById("checkin").value,
+checkout:document.getElementById("checkout").value
 }
 
 save()
 loadRooms()
-
-roomModal.hide()
+modal.hide()
 
 }
 
 function checkoutRoom(){
 
 let r=rooms[currentRoom]
+
+if(!r)return
 
 let nights=(new Date(r.checkout)-new Date(r.checkin))/(1000*60*60*24)
 
@@ -324,7 +304,7 @@ save()
 loadRooms()
 loadIncome()
 
-roomModal.hide()
+modal.hide()
 
 }
 
@@ -334,8 +314,7 @@ rooms[currentRoom]={status:"available"}
 
 save()
 loadRooms()
-
-roomModal.hide()
+modal.hide()
 
 }
 
@@ -344,8 +323,8 @@ function loadIncome(){
 let today=new Date().toISOString().slice(0,10)
 let month=today.slice(0,7)
 
-incomeToday.innerText=income[today]||0
-incomeMonth.innerText=income[month]||0
+document.getElementById("incomeToday").innerText=income[today]||0
+document.getElementById("incomeMonth").innerText=income[month]||0
 
 }
 
