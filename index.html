@@ -2,74 +2,315 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>ระบบจัดการโรงแรมแบบง่าย (ไฟล์เดียว)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hotel System Offline PRO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
     <style>
-        body { font-family: Tahoma, sans-serif; margin: 20px; }
-        table { border-collapse: collapse; width: 600px; }
-        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-        th { background-color: #eee; }
-        .btn { padding: 5px 10px; cursor: pointer; background-color: #28a745; color: white; border: none; }
-        .btn:disabled { background-color: #aaa; cursor: not-allowed; }
+        body {
+            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        /* ตกแต่งกล่องห้องพัก */
+        .room {
+            padding: 20px 10px;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .room:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .room i { font-size: 1.5rem; } /* ขนาดไอคอนในห้อง */
+        
+        /* สีสถานะห้อง */
+        .available { background: #10b981; } /* เขียว */
+        .occupied { background: #ef4444; }  /* แดง */
+        .reserved { background: #f59e0b; }  /* ส้ม */
+        .cleaning { background: #64748b; }  /* เทา */
+
+        .stat-card {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
     </style>
 </head>
 <body>
 
-    <h2>ระบบจัดการโรงแรม (HTML + JavaScript)</h2>
-    
-    <table id="roomTable">
-        <thead>
-            <tr>
-                <th>ห้อง</th>
-                <th>ประเภท</th>
-                <th>สถานะ</th>
-                <th>จัดการ</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            </tbody>
-    </table>
+    <div class="header">
+        <i class="bi bi-buildings"></i> Hotel System Offline PRO
+    </div>
+
+    <div class="container mt-4">
+        <div class="row g-3 text-center mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card stat-card bg-white text-success p-3">
+                    <h6 class="text-muted"><i class="bi bi-door-open"></i> ว่าง</h6>
+                    <h3 id="free" class="mb-0 fw-bold">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card stat-card bg-white text-danger p-3">
+                    <h6 class="text-muted"><i class="bi bi-door-closed"></i> เข้าพัก</h6>
+                    <h3 id="used" class="mb-0 fw-bold">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card stat-card bg-white text-warning p-3">
+                    <h6 class="text-muted"><i class="bi bi-calendar-check"></i> จอง</h6>
+                    <h3 id="reservedCount" class="mb-0 fw-bold">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card stat-card bg-white text-primary p-3">
+                    <h6 class="text-muted"><i class="bi bi-cash-stack"></i> รายได้วันนี้</h6>
+                    <h3 id="incomeToday" class="mb-0 fw-bold">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="mb-3 fw-bold text-secondary"><i class="bi bi-grid-1x2"></i> แผนผังห้องพัก (Room Map)</h5>
+        
+        <div class="row g-3" id="rooms"></div>
+    </div>
+
+    <div class="modal fade" id="roomModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold" id="roomTitle"><i class="bi bi-key"></i> จัดการห้อง</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="name" placeholder="ชื่อลูกค้า">
+                        <label><i class="bi bi-person"></i> ชื่อลูกค้า</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="tel" class="form-control" id="phone" placeholder="เบอร์โทร">
+                        <label><i class="bi bi-telephone"></i> เบอร์โทร</label>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="date" class="form-control" id="checkin">
+                                <label>วันที่เข้า</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="date" class="form-control" id="checkout">
+                                <label>วันที่ออก</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="number" class="form-control" id="price" value="500">
+                        <label><i class="bi bi-tag"></i> ราคาต่อคืน (บาท)</label>
+                    </div>
+
+                    <div class="alert alert-info text-center fw-bold fs-5" id="stayInfo">
+                        0 คืน | 0 บาท
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success py-2 fw-bold" id="btn-checkin" onclick="checkinRoom()">
+                            <i class="bi bi-box-arrow-in-right"></i> Check-in
+                        </button>
+                        <button class="btn btn-warning py-2 fw-bold text-dark" id="btn-reserve" onclick="reserveRoom()">
+                            <i class="bi bi-calendar-plus"></i> จองห้องพัก
+                        </button>
+                        <button class="btn btn-danger py-2 fw-bold" id="btn-checkout" onclick="checkoutRoom()">
+                            <i class="bi bi-box-arrow-right"></i> Check-out
+                        </button>
+                        <button class="btn btn-secondary py-2 fw-bold" id="btn-clean" onclick="cleanDone()">
+                            <i class="bi bi-stars"></i> ทำความสะอาดเสร็จสิ้น
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // 1. จำลองข้อมูลห้องพัก (แทนฐานข้อมูล)
-        let rooms = [
-            { number: "101", type: "Standard", isAvailable: true },
-            { number: "102", type: "Standard", isAvailable: true },
-            { number: "201", type: "Deluxe", isAvailable: true }
-        ];
+        let rooms = JSON.parse(localStorage.getItem("rooms")) || {};
+        let income = JSON.parse(localStorage.getItem("income")) || {};
+        let currentRoom = null;
+        let modal = new bootstrap.Modal(document.getElementById("roomModal"));
 
-        // 2. ฟังก์ชันสำหรับวาดตารางแสดงผล
-        function renderTable() {
-            let tbody = document.getElementById("tableBody");
-            tbody.innerHTML = ""; // ล้างข้อมูลเก่าก่อน
-            
-            // วนลูปข้อมูลห้องเพื่อสร้างแถวในตาราง
-            for (let i = 0; i < rooms.length; i++) {
-                let room = rooms[i];
-                let statusText = room.isAvailable ? "<span style='color:green;'>ว่าง</span>" : "<span style='color:red;'>มีผู้เข้าพัก</span>";
-                let btnHtml = room.isAvailable 
-                    ? `<button class="btn" onclick="bookRoom(${i})">จองห้อง</button>`
-                    : `<button class="btn" disabled>จองแล้ว</button>`;
+        function save() {
+            localStorage.setItem("rooms", JSON.stringify(rooms));
+            localStorage.setItem("income", JSON.stringify(income));
+        }
 
-                let row = `<tr>
-                    <td>${room.number}</td>
-                    <td>${room.type}</td>
-                    <td>${statusText}</td>
-                    <td>${btnHtml}</td>
-                </tr>`;
-                tbody.innerHTML += row;
+        function loadRooms() {
+            let free = 0, used = 0, reserved = 0, html = "";
+            for (let i = 101; i <= 150; i++) {
+                let r = rooms[i];
+                let status = "available";
+                let icon = "bi-door-open"; // ไอคอนเริ่มต้น (ว่าง)
+
+                if (r) {
+                    if (r.status === "occupied") { status = "occupied"; used++; icon = "bi-person-check-fill"; }
+                    else if (r.status === "reserved") { status = "reserved"; reserved++; icon = "bi-calendar-check-fill"; }
+                    else if (r.status === "cleaning") { status = "cleaning"; icon = "bi-stars"; }
+                    else free++;
+                } else {
+                    free++;
+                }
+
+                // ปรับให้รองรับมือถือ (1 แถวมี 3 ห้องสำหรับมือถือ, 4-6 ห้องสำหรับจอใหญ่)
+                html += `
+                <div class="col-4 col-sm-3 col-md-2">
+                    <div class="room ${status}" onclick="openRoom(${i})">
+                        <i class="bi ${icon}"></i>
+                        <span>${i}</span>
+                    </div>
+                </div>`;
             }
+
+            document.getElementById("rooms").innerHTML = html;
+            document.getElementById("free").innerText = free;
+            document.getElementById("used").innerText = used;
+            document.getElementById("reservedCount").innerText = reserved;
         }
 
-        // 3. ฟังก์ชันสำหรับจองห้องพัก
-        function bookRoom(index) {
-            rooms[index].isAvailable = false; // เปลี่ยนสถานะเป็นไม่ว่าง
-            renderTable(); // สั่งให้วาดตารางใหม่เพื่ออัปเดตหน้าจอ
-            alert("ทำการจองห้อง " + rooms[index].number + " สำเร็จ!");
+        function openRoom(room) {
+            currentRoom = room;
+            document.getElementById("roomTitle").innerHTML = `<i class="bi bi-door-open"></i> ห้อง ${room}`;
+            let r = rooms[room];
+            let status = r ? r.status : "available";
+
+            // จัดการข้อมูลในแบบฟอร์ม
+            if (r && status !== "cleaning") {
+                document.getElementById("name").value = r.name || "";
+                document.getElementById("phone").value = r.phone || "";
+                document.getElementById("price").value = r.price || 500;
+                document.getElementById("checkin").value = r.checkin || "";
+                document.getElementById("checkout").value = r.checkout || "";
+            } else {
+                document.getElementById("name").value = "";
+                document.getElementById("phone").value = "";
+                document.getElementById("price").value = 500;
+                let today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
+                document.getElementById("checkin").value = today;
+                
+                let tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                document.getElementById("checkout").value = tomorrow.toLocaleDateString('en-CA');
+            }
+
+            // จัดการแสดงผลปุ่ม (Smart Buttons UX)
+            document.getElementById("btn-checkin").style.display = (status === "available" || status === "reserved") ? "block" : "none";
+            document.getElementById("btn-reserve").style.display = (status === "available") ? "block" : "none";
+            document.getElementById("btn-checkout").style.display = (status === "occupied") ? "block" : "none";
+            document.getElementById("btn-clean").style.display = (status === "cleaning") ? "block" : "none";
+
+            calcStay();
+            modal.show();
         }
 
-        // เรียกใช้งานฟังก์ชันวาดตารางครั้งแรกเมื่อเปิดหน้าเว็บ
-        renderTable();
+        function calcStay() {
+            let checkin = document.getElementById("checkin").value;
+            let checkout = document.getElementById("checkout").value;
+            let price = Number(document.getElementById("price").value);
+            let nights = 0;
+
+            if (checkin && checkout) {
+                nights = Math.ceil((new Date(checkout) - new Date(checkin)) / (1000 * 60 * 60 * 24));
+                if (nights <= 0) nights = 1;
+            }
+
+            let total = nights * price;
+            // ใช้ toLocaleString() เพื่อใส่ลูกน้ำคั่นตัวเลขให้ดูสวยงาม
+            document.getElementById("stayInfo").innerText = `${nights} คืน | ${total.toLocaleString()} บาท`;
+        }
+
+        // ดักจับเหตุการณ์เมื่อมีการเปลี่ยนข้อมูลในฟอร์มให้คำนวณราคาใหม่
+        document.getElementById("checkin").addEventListener("change", calcStay);
+        document.getElementById("checkout").addEventListener("change", calcStay);
+        document.getElementById("price").addEventListener("change", calcStay);
+        // ดักให้คำนวณอัตโนมัติเมื่อพิมพ์ราคา (ไม่ต้องรอคลิกที่อื่น)
+        document.getElementById("price").addEventListener("keyup", calcStay); 
+
+        function getFormData(status) {
+            return {
+                status: status,
+                name: document.getElementById("name").value,
+                phone: document.getElementById("phone").value,
+                price: Number(document.getElementById("price").value),
+                checkin: document.getElementById("checkin").value,
+                checkout: document.getElementById("checkout").value
+            };
+        }
+
+        function checkinRoom() {
+            rooms[currentRoom] = getFormData("occupied");
+            save(); loadRooms(); modal.hide();
+        }
+
+        function reserveRoom() {
+            rooms[currentRoom] = getFormData("reserved");
+            save(); loadRooms(); modal.hide();
+        }
+
+        function checkoutRoom() {
+            let r = rooms[currentRoom];
+            if (!r) return;
+
+            let nights = Math.ceil((new Date(r.checkout) - new Date(r.checkin)) / (1000 * 60 * 60 * 24));
+            if (nights <= 0) nights = 1;
+            let total = r.price * nights;
+
+            let today = new Date().toLocaleDateString('en-CA');
+            let month = today.slice(0, 7);
+
+            income[today] = (income[today] || 0) + total;
+            income[month] = (income[month] || 0) + total;
+
+            rooms[currentRoom] = { status: "cleaning" };
+            save(); loadRooms(); loadIncome(); modal.hide();
+        }
+
+        function cleanDone() {
+            rooms[currentRoom] = { status: "available" };
+            save(); loadRooms(); modal.hide();
+        }
+
+        function loadIncome() {
+            let today = new Date().toLocaleDateString('en-CA');
+            let month = today.slice(0, 7);
+            
+            let todayInc = income[today] || 0;
+            // แสดงราคาแบบมีลูกน้ำ (คอมม่า)
+            document.getElementById("incomeToday").innerText = "฿" + todayInc.toLocaleString();
+        }
+
+        // เริ่มต้นการทำงาน
+        loadRooms();
+        loadIncome();
     </script>
-
 </body>
 </html>
