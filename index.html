@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Hotel System Offline</title>
+<title>Hotel System PRO MAX</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -18,9 +18,10 @@ font-family:system-ui;
 .header{
 background:#111827;
 color:white;
-padding:12px;
+padding:14px;
 text-align:center;
 font-size:20px;
+font-weight:bold;
 }
 
 .room{
@@ -37,13 +38,17 @@ cursor:pointer;
 .reserved{background:#f59e0b}
 .cleaning{background:#6b7280}
 
+.warning{
+border:3px solid yellow;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<div class="header">🏨 Hotel System Offline</div>
+<div class="header">🏨 Hotel System OFFLINE PRO MAX</div>
 
 <div class="container mt-3">
 
@@ -61,7 +66,7 @@ cursor:pointer;
 
 <div class="col">
 <h6>จอง</h6>
-<h4 id="reserved"></h4>
+<h4 id="reservedCount"></h4>
 </div>
 
 </div>
@@ -86,9 +91,6 @@ cursor:pointer;
 
 </div>
 
-
-<!-- modal -->
-
 <div class="modal fade" id="roomModal">
 <div class="modal-dialog">
 <div class="modal-content">
@@ -107,7 +109,7 @@ cursor:pointer;
 <input class="form-control mb-2" id="price" value="500">
 
 <label>วันที่เข้า</label>
-<input class="form-control mb-2" type="date" id="checkin">
+<input class="form-control mb-2" type="date" id="checkin" onchange="calcStay()">
 
 <label>วันที่ออก</label>
 <input class="form-control mb-2" type="date" id="checkout" onchange="calcStay()">
@@ -140,6 +142,8 @@ let income = JSON.parse(localStorage.getItem("income")) || {}
 
 let currentRoom=null
 
+let roomModal = new bootstrap.Modal(document.getElementById("roomModal"))
+
 function save(){
 
 localStorage.setItem("rooms",JSON.stringify(rooms))
@@ -152,31 +156,45 @@ function loadRooms(){
 let html=""
 let free=0
 let used=0
-let reservedCount=0
+let reserved=0
+
+let today=new Date()
 
 for(let i=101;i<=150;i++){
 
 let r=rooms[i]
 
 let className="available"
+let warn=""
 
 if(r){
 
 if(r.status=="occupied"){className="occupied";used++}
-else if(r.status=="reserved"){className="reserved";reservedCount++}
+else if(r.status=="reserved"){className="reserved";reserved++}
 else if(r.status=="cleaning"){className="cleaning"}
 else free++
 
-}else free++
+if(r.checkout){
+
+let checkoutDate=new Date(r.checkout)
+let diff=(checkoutDate-today)/(1000*60*60)
+
+if(diff<24 && diff>0){
+warn="warning"
+}
+
+}
+
+}else{
+free++
+}
 
 html+=`
-
 <div class="col-3">
-<div class="room ${className}" onclick="openRoom(${i})">
+<div class="room ${className} ${warn}" onclick="openRoom(${i})">
 ${i}
 </div>
 </div>
-
 `
 
 }
@@ -184,16 +202,40 @@ ${i}
 document.getElementById("rooms").innerHTML=html
 document.getElementById("free").innerText=free
 document.getElementById("used").innerText=used
-document.getElementById("reserved").innerText=reservedCount
+document.getElementById("reservedCount").innerText=reserved
 
 }
 
 function openRoom(room){
 
 currentRoom=room
+
 document.getElementById("roomTitle").innerText="ห้อง "+room
 
-new bootstrap.Modal(document.getElementById("roomModal")).show()
+let r=rooms[room]
+
+if(r){
+
+name.value=r.name||""
+phone.value=r.phone||""
+price.value=r.price||500
+checkin.value=r.checkin||""
+checkout.value=r.checkout||""
+
+calcStay()
+
+}else{
+
+name.value=""
+phone.value=""
+price.value=500
+checkin.value=""
+checkout.value=""
+stayInfo.innerText="0 คืน | 0 บาท"
+
+}
+
+roomModal.show()
 
 }
 
@@ -201,23 +243,20 @@ function calcStay(){
 
 let c1=checkin.value
 let c2=checkout.value
-let price=priceInput()
+let priceValue=Number(price.value)
 
 if(c1 && c2){
 
 let nights=(new Date(c2)-new Date(c1))/(1000*60*60*24)
+
 if(nights<0)nights=0
 
-let total=nights*price
+let total=nights*priceValue
 
 stayInfo.innerText=nights+" คืน | "+total+" บาท"
 
 }
 
-}
-
-function priceInput(){
-return Number(document.getElementById("price").value)
 }
 
 function checkin(){
@@ -227,7 +266,7 @@ rooms[currentRoom]={
 status:"occupied",
 name:name.value,
 phone:phone.value,
-price:priceInput(),
+price:Number(price.value),
 checkin:checkin.value,
 checkout:checkout.value
 
@@ -235,6 +274,7 @@ checkout:checkout.value
 
 save()
 loadRooms()
+roomModal.hide()
 
 }
 
@@ -245,7 +285,7 @@ rooms[currentRoom]={
 status:"reserved",
 name:name.value,
 phone:phone.value,
-price:priceInput(),
+price:Number(price.value),
 checkin:checkin.value,
 checkout:checkout.value
 
@@ -253,6 +293,7 @@ checkout:checkout.value
 
 save()
 loadRooms()
+roomModal.hide()
 
 }
 
@@ -261,6 +302,7 @@ function checkoutRoom(){
 let r=rooms[currentRoom]
 
 let nights=(new Date(r.checkout)-new Date(r.checkin))/(1000*60*60*24)
+
 let total=r.price*nights
 
 let today=new Date().toISOString().slice(0,10)
@@ -275,6 +317,8 @@ save()
 loadRooms()
 loadIncome()
 
+roomModal.hide()
+
 }
 
 function cleanDone(){
@@ -283,6 +327,8 @@ rooms[currentRoom]={status:"available"}
 
 save()
 loadRooms()
+
+roomModal.hide()
 
 }
 
