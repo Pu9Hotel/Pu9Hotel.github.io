@@ -110,8 +110,12 @@
             </div>
             <div class="col-6 col-md-3">
                 <div class="card stat-card bg-white p-3 border-bottom border-primary border-4">
-                    <small class="text-muted fw-bold">รายได้วันนี้</small>
-                    <h2 id="stat-income" class="text-primary fw-bold mb-0">฿0</h2>
+                    <small class="text-muted fw-bold">รายได้วันนี้ (รอบบัญชี)</small>
+                    <h3 id="stat-income" class="text-primary fw-bold mb-1">฿0</h3>
+                    <div class="d-flex justify-content-between small fw-bold mt-1 pt-1 border-top">
+                        <span class="text-info">กะเช้า: <span id="stat-shift1">฿0</span></span>
+                        <span class="text-warning">กะดึก: <span id="stat-shift2">฿0</span></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -336,13 +340,12 @@
         // --- โครงสร้างข้อมูล ---
         let roomsData = JSON.parse(localStorage.getItem('hotel_queue_rooms')) || {};
         
-        // Income Data แบบรายวัน (ปรับให้เป็นตัวเลขธรรมดา ไม่ต้องแยกกะ)
+        // --- ระบบกะบัญชี (Shift Data) ---
         let incomeData = JSON.parse(localStorage.getItem('hotel_queue_income')) || {};
-        
-        // ไมเกรตข้อมูลเก่าเผื่อมาจากเวอร์ชั่นกะ ให้กลายเป็นเลขรวมยอดเดียว
+        // ไมเกรตข้อมูลเก่าให้มีโครงสร้างแยกกะ เพื่อความปลอดภัย
         for(let key in incomeData) {
-            if(typeof incomeData[key] === 'object') {
-                incomeData[key] = incomeData[key].total || 0;
+            if(typeof incomeData[key] === 'number') {
+                incomeData[key] = { shift1: incomeData[key], shift2: 0, total: incomeData[key] };
             }
         }
         
@@ -354,18 +357,47 @@
         const chartModalObj = new bootstrap.Modal(document.getElementById('chartModal'));
         let dailyChartInstance = null; 
 
-        // --- วันที่และบัญชี ---
+        // --- ฟังก์ชันวันเวลา และกะการทำงาน ---
         function getTodayStr(dateObj = new Date()) {
             const d = new Date(dateObj); 
             d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
             return d.toISOString().split('T')[0];
         }
 
-        // บันทึกรายได้แบบรายวันธรรมดา
+        // คืนค่าวันที่บันทึกบัญชี และรอบกะ
+        function getAccountingShift() {
+            const d = new Date();
+            const timeInMinutes = d.getHours() * 60 + d.getMinutes();
+            let shift = 1;
+            let accDate = new Date(d);
+
+            // กะ 1 : 06:00 (360) - 16:29 (989)
+            if (timeInMinutes >= 360 && timeInMinutes < 990) {
+                shift = 1;
+            } 
+            // กะ 2 : 16:30 (990) - 23:59 (1439)
+            else if (timeInMinutes >= 990) {
+                shift = 2;
+            } 
+            // กะ 2 ข้ามวัน : 00:00 (0) - 05:59 (359)
+            else {
+                shift = 2;
+                accDate.setDate(accDate.getDate() - 1); 
+            }
+            return { dateStr: getTodayStr(accDate), shift: shift };
+        }
+
+        // บันทึกรายได้แยกกะอัตโนมัติ
         function recordIncome(amount) {
             if(amount <= 0) return;
-            const today = getTodayStr();
-            incomeData[today] = (incomeData[today] || 0) + amount;
+            const { dateStr, shift } = getAccountingShift();
+            
+            if(!incomeData[dateStr]) incomeData[dateStr] = { shift1: 0, shift2: 0, total: 0 };
+            
+            if(shift === 1) incomeData[dateStr].shift1 += amount;
+            else incomeData[dateStr].shift2 += amount;
+            
+            incomeData[dateStr].total += amount;
         }
 
         function init() {
@@ -390,7 +422,7 @@
         function setStatusFilter(status, btnElement) {
             activeFilter = status;
             
-            // ล้างสถานะ active ออกจากทุกปุ่ม และใส่สีข้อความกลับเข้าไปให้ปุ่มที่ไม่ได้เลือก
+            // ล้างสถานะ active และเปลี่ยนสีตัวอักษรของปุ่มอื่นๆ
             const btns = document.querySelectorAll('.filter-btn');
             btns.forEach(b => {
                 b.classList.remove('active');
@@ -398,7 +430,7 @@
                 if(b.dataset.filter === 'occupied') b.classList.add('text-danger');
             });
             
-            // ทำให้ปุ่มที่กด active และเอาสีตัวอักษรออก (เพื่อให้ตัวอักษรเป็นสีขาวตัดกับพื้นหลังสีฟ้า)
+            // ใส่ active ปุ่มที่กด
             btnElement.classList.add('active');
             btnElement.classList.remove('text-success', 'text-danger');
             
@@ -668,7 +700,7 @@
                 roomsData[currentRoom][index] = { ...roomsData[currentRoom][index], name, phone, idCard, cin, cout, price, extraBed, discount, deposit, total: amounts.total };
             } else {
                 roomsData[currentRoom].push({ id: Date.now().toString(), name, phone, idCard, cin, cout, price, extraBed, discount, deposit, total: amounts.total });
-                if (deposit > 0) recordIncome(deposit);
+                if (deposit > 0) recordIncome(deposit); // บันทึกรายได้มัดจำแยกกะ
             }
             save(); refreshAll(); roomModalObj.hide();
         }
@@ -684,7 +716,7 @@
             if(b) {
                 let remain = b.total - (b.deposit || 0);
                 remain = remain < 0 ? 0 : remain;
-                if(remain > 0) recordIncome(remain);
+                if(remain > 0) recordIncome(remain); // บันทึกรายได้ส่วนที่เหลือแยกกะ
                 
                 roomsData[currentRoom] = roomsData[currentRoom].filter(b => b.id !== activeId);
                 save(); refreshAll(); roomModalObj.hide();
@@ -697,7 +729,7 @@
             save(); openRoom(currentRoom); refreshAll();
         }
 
-        // --- สถิติ ---
+        // --- สถิติ (ดึงข้อมูลกะมาแสดงในหน้าหลัก) ---
         function updateStats() {
             const today = getTodayStr(); let free = 0, used = 0, res = 0;
             allRooms.forEach(room => {
@@ -708,11 +740,16 @@
             });
             document.getElementById('stat-free').innerText = free; document.getElementById('stat-used').innerText = used; document.getElementById('stat-res').innerText = res;
             
-            const todayIncome = incomeData[today] || 0;
-            document.getElementById('stat-income').innerText = `฿${todayIncome.toLocaleString()}`;
+            // ดึงรายได้ตามรอบกะปัจจุบันมาโชว์ที่ Dashboard
+            const { dateStr } = getAccountingShift();
+            const todayIncome = incomeData[dateStr] || { shift1: 0, shift2: 0, total: 0 };
+            
+            document.getElementById('stat-income').innerText = `฿${todayIncome.total.toLocaleString()}`;
+            document.getElementById('stat-shift1').innerText = `฿${todayIncome.shift1.toLocaleString()}`;
+            document.getElementById('stat-shift2').innerText = `฿${todayIncome.shift2.toLocaleString()}`;
         }
 
-        // --- กราฟรายวัน ---
+        // --- กราฟรายวัน (ซ่อนกะ โชว์แค่ยอดรวม) ---
         function openChartModal() {
             renderDailyChart();
             chartModalObj.show();
@@ -732,7 +769,9 @@
             for(let d = 1; d <= daysInMonth; d++) {
                 labels.push(`${d} ${monthNamesShort[monthIndex]}`);
                 const dateKey = `${yearStr}-${monthStr}-${String(d).padStart(2,'0')}`;
-                dataPts.push(incomeData[dateKey] || 0);
+                const iData = incomeData[dateKey] || { total: 0 };
+                // โชว์แค่ยอดรวมในกราฟ
+                dataPts.push(iData.total);
             }
 
             if(dailyChartInstance) dailyChartInstance.destroy();
@@ -750,7 +789,7 @@
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }, // ซ่อน Label เพราะมีแค่เส้นเดียว
+                    plugins: { legend: { display: false } }, // ซ่อน Label เล็กๆ ด้านบน
                     scales: { 
                         x: { ticks: { autoSkip: true, maxTicksLimit: 15 } }, 
                         y: { beginAtZero: true, ticks: { callback: function(value) { return '฿' + value.toLocaleString(); } } } 
@@ -760,19 +799,18 @@
         }
         const monthNamesShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
-        // --- Export to Excel (CSV) ---
+        // --- Export to Excel (CSV) พร้อมแยกกะ ---
         function exportIncomeToExcel() {
-            // เช็คว่ามีข้อมูลรายได้ไหม
             const dates = Object.keys(incomeData).sort();
             if (dates.length === 0) return alert("ยังไม่มีข้อมูลรายได้ให้บันทึกครับ");
 
-            // \uFEFF คือ BOM (Byte Order Mark) ทำให้ Excel อ่านภาษาไทย (UTF-8) ได้ถูกต้อง
+            // \uFEFF คือ BOM ทำให้โปรแกรม Excel เปิดแล้วอ่านภาษาไทยได้
             let csvContent = "\uFEFF"; 
-            csvContent += "วันที่ (YYYY-MM-DD),รายได้สุทธิ (บาท)\n";
+            csvContent += "วันที่ (YYYY-MM-DD),กะเช้า (บาท),กะดึก (บาท),รายได้รวม (บาท)\n";
 
             dates.forEach(date => {
-                const amount = incomeData[date] || 0;
-                csvContent += `${date},${amount}\n`;
+                const iData = incomeData[date] || { shift1: 0, shift2: 0, total: 0 };
+                csvContent += `${date},${iData.shift1},${iData.shift2},${iData.total}\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
