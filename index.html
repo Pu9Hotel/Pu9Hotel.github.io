@@ -18,14 +18,11 @@
         }
         body { background: var(--bg-main); font-family: 'Prompt', sans-serif; color: #334155; }
         
-        /* Header */
         .header { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: white; padding: 30px 0; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 2rem;}
         
-        /* Cards */
         .stat-card { border-radius: 16px; border: none; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         .content-card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); margin-bottom: 2rem;}
         
-        /* Room Grid */
         .building-title { border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px; font-weight: 600; color: var(--primary-dark); }
         .room-card {
             border-radius: 16px; border: none; color: white;
@@ -37,9 +34,15 @@
         .status-available { background-color: var(--success); }
         .status-occupied { background-color: var(--danger); }
         
+        /* ป้ายแจ้งเตือนต่างๆ บนการ์ดห้อง */
         .has-future::after {
             content: "มีคิวจอง"; position: absolute; top: 10px; right: 10px;
             background: var(--warning); color: #000; font-size: 0.65rem;
+            padding: 4px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .checkout-tmr {
+            position: absolute; bottom: 10px; right: 10px;
+            background: #facc15; color: #000; font-size: 0.65rem;
             padding: 4px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .twin-badge {
@@ -48,7 +51,6 @@
             padding: 4px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* Calendar */
         .table-timeline-container { overflow-x: auto; background: white; border-radius: 12px; }
         .timeline-table th, .timeline-table td { min-width: 45px; text-align: center; vertical-align: middle; padding: 8px 4px; border: 1px solid #f1f5f9; font-size: 0.85rem;}
         .timeline-table th { background-color: #f8fafc; color: #64748b; font-weight: 500;}
@@ -56,7 +58,6 @@
         .cell-booked { background-color: var(--danger) !important; color: white; border-radius: 6px; box-shadow: inset 0 0 0 2px white;}
         .cell-today-col { background-color: #fef3c7; }
         
-        /* Custom Inputs */
         .form-control, .form-select { border-radius: 8px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; }
         .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
     </style>
@@ -91,31 +92,28 @@
 
         <div class="row g-3 mb-4 text-center">
             <div class="col-6 col-md-3">
-                <div class="card stat-card bg-white p-3 border-bottom border-success border-4">
+                <div class="card stat-card bg-white p-3 border-bottom border-success border-4 h-100">
                     <small class="text-muted fw-bold">ว่างพร้อมใช้</small>
                     <h2 id="stat-free" class="text-success fw-bold mb-0">0</h2>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="card stat-card bg-white p-3 border-bottom border-danger border-4">
+                <div class="card stat-card bg-white p-3 border-bottom border-danger border-4 h-100">
                     <small class="text-muted fw-bold">กำลังเข้าพัก</small>
                     <h2 id="stat-used" class="text-danger fw-bold mb-0">0</h2>
+                    <div class="small fw-bold text-secondary mt-1" id="stat-occ">Occ: 0%</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="card stat-card bg-white p-3 border-bottom border-warning border-4">
+                <div class="card stat-card bg-white p-3 border-bottom border-warning border-4 h-100">
                     <small class="text-muted fw-bold">จองล่วงหน้า</small>
                     <h2 id="stat-res" class="text-warning fw-bold mb-0">0</h2>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="card stat-card bg-white p-3 border-bottom border-primary border-4">
-                    <small class="text-muted fw-bold">รายได้วันนี้ (รอบบัญชี)</small>
+                <div class="card stat-card bg-white p-3 border-bottom border-primary border-4 h-100">
+                    <small class="text-muted fw-bold">รายได้วันนี้</small>
                     <h3 id="stat-income" class="text-primary fw-bold mb-1">฿0</h3>
-                    <div class="d-flex justify-content-between small fw-bold mt-1 pt-1 border-top">
-                        <span class="text-info">กะเช้า: <span id="stat-shift1">฿0</span></span>
-                        <span class="text-warning">กะดึก: <span id="stat-shift2">฿0</span></span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -339,13 +337,11 @@
 
         // --- โครงสร้างข้อมูล ---
         let roomsData = JSON.parse(localStorage.getItem('hotel_queue_rooms')) || {};
-        
-        // --- ระบบกะบัญชี (Shift Data) ---
         let incomeData = JSON.parse(localStorage.getItem('hotel_queue_income')) || {};
-        // ไมเกรตข้อมูลเก่าให้มีโครงสร้างแยกกะ เพื่อความปลอดภัย
+        
         for(let key in incomeData) {
-            if(typeof incomeData[key] === 'number') {
-                incomeData[key] = { shift1: incomeData[key], shift2: 0, total: incomeData[key] };
+            if(typeof incomeData[key] === 'object') {
+                incomeData[key] = incomeData[key].total || 0;
             }
         }
         
@@ -357,47 +353,18 @@
         const chartModalObj = new bootstrap.Modal(document.getElementById('chartModal'));
         let dailyChartInstance = null; 
 
-        // --- ฟังก์ชันวันเวลา และกะการทำงาน ---
+        // --- วันที่และบัญชี ---
         function getTodayStr(dateObj = new Date()) {
             const d = new Date(dateObj); 
             d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
             return d.toISOString().split('T')[0];
         }
 
-        // คืนค่าวันที่บันทึกบัญชี และรอบกะ
-        function getAccountingShift() {
-            const d = new Date();
-            const timeInMinutes = d.getHours() * 60 + d.getMinutes();
-            let shift = 1;
-            let accDate = new Date(d);
-
-            // กะ 1 : 06:00 (360) - 16:29 (989)
-            if (timeInMinutes >= 360 && timeInMinutes < 990) {
-                shift = 1;
-            } 
-            // กะ 2 : 16:30 (990) - 23:59 (1439)
-            else if (timeInMinutes >= 990) {
-                shift = 2;
-            } 
-            // กะ 2 ข้ามวัน : 00:00 (0) - 05:59 (359)
-            else {
-                shift = 2;
-                accDate.setDate(accDate.getDate() - 1); 
-            }
-            return { dateStr: getTodayStr(accDate), shift: shift };
-        }
-
-        // บันทึกรายได้แยกกะอัตโนมัติ
+        // บันทึกรายได้ (รับค่าติดลบได้เพื่อการหักเงิน)
         function recordIncome(amount) {
-            if(amount <= 0) return;
-            const { dateStr, shift } = getAccountingShift();
-            
-            if(!incomeData[dateStr]) incomeData[dateStr] = { shift1: 0, shift2: 0, total: 0 };
-            
-            if(shift === 1) incomeData[dateStr].shift1 += amount;
-            else incomeData[dateStr].shift2 += amount;
-            
-            incomeData[dateStr].total += amount;
+            if(amount === 0) return;
+            const today = getTodayStr();
+            incomeData[today] = (incomeData[today] || 0) + amount;
         }
 
         function init() {
@@ -418,22 +385,17 @@
             updateStats();
         }
 
-        // --- ระบบกรองห้อง (ดีไซน์ใหม่) ---
+        // --- ระบบกรองห้อง ---
         function setStatusFilter(status, btnElement) {
             activeFilter = status;
-            
-            // ล้างสถานะ active และเปลี่ยนสีตัวอักษรของปุ่มอื่นๆ
             const btns = document.querySelectorAll('.filter-btn');
             btns.forEach(b => {
                 b.classList.remove('active');
                 if(b.dataset.filter === 'available') b.classList.add('text-success');
                 if(b.dataset.filter === 'occupied') b.classList.add('text-danger');
             });
-            
-            // ใส่ active ปุ่มที่กด
             btnElement.classList.add('active');
             btnElement.classList.remove('text-success', 'text-danger');
-            
             filterRooms();
         }
 
@@ -468,6 +430,9 @@
         function createRoomCardHtml(roomNum) {
             const bookings = roomsData[roomNum] || [];
             const today = getTodayStr();
+            const tmrD = new Date(); tmrD.setDate(tmrD.getDate() + 1);
+            const tomorrowStr = getTodayStr(tmrD);
+
             const active = bookings.find(b => b.cin <= today && b.cout > today);
             const hasFuture = bookings.some(b => b.cin > today);
 
@@ -477,6 +442,9 @@
             
             const futureClass = hasFuture ? 'has-future' : '';
             const twinBadgeHtml = twinBeds.includes(roomNum) ? `<span class="twin-badge"><i class="bi bi-people-fill"></i> เตียงคู่</span>` : '';
+            
+            // เพิ่ม Badge "เหลือ 1 วัน" (ถ้าวัน Check-out คือวันพรุ่งนี้)
+            const checkoutTmrHtml = (active && active.cout === tomorrowStr) ? `<span class="checkout-tmr">⏳ เหลือ 1 วัน</span>` : '';
 
             return `
                 <div class="col-6 col-md-3 col-lg-2 room-card-wrapper" data-room="${roomNum}">
@@ -485,6 +453,7 @@
                         <h4 class="fw-bold mb-1 mt-2">${roomNum}</h4>
                         <i class="bi ${icon} fs-1 opacity-75 mb-2"></i>
                         <div class="small fw-bold text-truncate w-100 px-2">${displayName}</div>
+                        ${checkoutTmrHtml}
                     </div>
                 </div>
             `;
@@ -535,10 +504,11 @@
             const today = getTodayStr();
 
             if (mode === 'checkin') {
-                cinInput.value = today; cinInput.min = today; cinInput.max = today; 
+                cinInput.value = today; cinInput.min = today; cinInput.max = today; // ห้ามเลือกวันอื่น
                 depContainer.style.display = 'none'; document.getElementById('deposit').value = 0;
             } else {
                 cinInput.removeAttribute('max'); 
+                cinInput.min = today; // ป้องกันการเลือกวันในอดีต สำหรับการจองใหม่
                 depContainer.style.display = 'block';
             }
             calcFormPrice();
@@ -581,7 +551,7 @@
                 listDiv.innerHTML = '<div class="text-center text-muted small py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>ไม่มีคิวจองล่วงหน้า</div>';
             } else {
                 listDiv.innerHTML = "";
-                futures.sort((a,b) => a.cin.localeCompare(b.cin)).forEach(b => {
+                futures.forEach(b => {
                     const depBadge = b.deposit > 0 ? `<span class="badge bg-success ms-2">มัดจำแล้ว ฿${b.deposit}</span>` : '';
                     listDiv.innerHTML += `
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
@@ -634,7 +604,7 @@
             return { total, remain };
         }
 
-        // --- แก้ไข/ยกเลิก ---
+        // --- แก้ไข/ยกเลิกแก้ ---
         function editBooking(bookingId) {
             const booking = roomsData[currentRoom].find(b => b.id === bookingId);
             if(!booking) return;
@@ -654,6 +624,7 @@
             document.getElementById('depositContainer').style.display = 'block';
             document.getElementById('deposit').value = booking.deposit || 0;
             document.getElementById('cin').removeAttribute('max');
+            document.getElementById('cin').removeAttribute('min'); // ตอนแก้ยอมให้แก้ย้อนอดีตได้
             calcFormPrice();
         }
 
@@ -683,7 +654,6 @@
 
             const amounts = calcFormPrice();
 
-            // Validate ข้อมูล
             if(!name) return alert("กรุณาระบุชื่อลูกค้า");
             if(phone && phone.length !== 10) return alert("❌ กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก");
             if(idCard && idCard.length !== 13) return alert("❌ กรุณากรอกเลขบัตรประชาชนให้ครบ 13 หลัก");
@@ -700,8 +670,12 @@
                 roomsData[currentRoom][index] = { ...roomsData[currentRoom][index], name, phone, idCard, cin, cout, price, extraBed, discount, deposit, total: amounts.total };
             } else {
                 roomsData[currentRoom].push({ id: Date.now().toString(), name, phone, idCard, cin, cout, price, extraBed, discount, deposit, total: amounts.total });
-                if (deposit > 0) recordIncome(deposit); // บันทึกรายได้มัดจำแยกกะ
+                if (deposit > 0) recordIncome(deposit);
             }
+            
+            // --- อัปเกรด: เรียงลำดับ Array ตามวันที่ Check-in ทันที (Auto Sort) ---
+            roomsData[currentRoom].sort((a, b) => a.cin.localeCompare(b.cin));
+
             save(); refreshAll(); roomModalObj.hide();
         }
 
@@ -716,20 +690,35 @@
             if(b) {
                 let remain = b.total - (b.deposit || 0);
                 remain = remain < 0 ? 0 : remain;
-                if(remain > 0) recordIncome(remain); // บันทึกรายได้ส่วนที่เหลือแยกกะ
+                if(remain > 0) recordIncome(remain);
                 
                 roomsData[currentRoom] = roomsData[currentRoom].filter(b => b.id !== activeId);
                 save(); refreshAll(); roomModalObj.hide();
             }
         }
 
+        // --- อัปเกรด: แก้ไขระบบหักรายได้ตอนลบข้อมูล ---
         function cancelBooking(bookingId) {
-            if(!confirm("ต้องการลบคิวจองนี้ใช่หรือไม่? (หากมีมัดจำแล้ว รายได้ที่บันทึกไปแล้วจะไม่ถูกลบออก)")) return;
-            roomsData[currentRoom] = roomsData[currentRoom].filter(b => b.id !== bookingId);
+            const b = roomsData[currentRoom].find(b => b.id === bookingId);
+            if(!b) return;
+
+            if(!confirm("ต้องการลบคิวจองนี้ใช่หรือไม่?")) return;
+
+            // ถ้ามีมัดจำ ให้ถามว่าจะหักรายได้คืนไหม
+            if(b.deposit > 0) {
+                if(confirm(`รายการนี้มีมัดจำ ฿${b.deposit.toLocaleString()}\n\n- กด OK เพื่อ "คืนเงินลูกค้า" (ระบบจะหักรายได้ออก)\n- กด Cancel เพื่อ "ยึดมัดจำ" (ไม่หักรายได้)`)) {
+                    recordIncome(-b.deposit); // ใส่ค่าติดลบเพื่อหักยอด
+                    alert(`✅ หักรายได้ออก ฿${b.deposit.toLocaleString()} เรียบร้อยแล้ว`);
+                } else {
+                    alert("📌 ลบคิวแล้ว และยังคงเก็บยอดมัดจำไว้ในระบบรายได้");
+                }
+            }
+
+            roomsData[currentRoom] = roomsData[currentRoom].filter(x => x.id !== bookingId);
             save(); openRoom(currentRoom); refreshAll();
         }
 
-        // --- สถิติ (ดึงข้อมูลกะมาแสดงในหน้าหลัก) ---
+        // --- สถิติ ---
         function updateStats() {
             const today = getTodayStr(); let free = 0, used = 0, res = 0;
             allRooms.forEach(room => {
@@ -740,16 +729,15 @@
             });
             document.getElementById('stat-free').innerText = free; document.getElementById('stat-used').innerText = used; document.getElementById('stat-res').innerText = res;
             
-            // ดึงรายได้ตามรอบกะปัจจุบันมาโชว์ที่ Dashboard
-            const { dateStr } = getAccountingShift();
-            const todayIncome = incomeData[dateStr] || { shift1: 0, shift2: 0, total: 0 };
-            
-            document.getElementById('stat-income').innerText = `฿${todayIncome.total.toLocaleString()}`;
-            document.getElementById('stat-shift1').innerText = `฿${todayIncome.shift1.toLocaleString()}`;
-            document.getElementById('stat-shift2').innerText = `฿${todayIncome.shift2.toLocaleString()}`;
+            // คำนวณ % การเข้าพัก
+            const occRate = Math.round((used / allRooms.length) * 100) || 0;
+            document.getElementById('stat-occ').innerText = `Occ: ${occRate}%`;
+
+            const todayIncome = incomeData[today] || 0;
+            document.getElementById('stat-income').innerText = `฿${todayIncome.toLocaleString()}`;
         }
 
-        // --- กราฟรายวัน (ซ่อนกะ โชว์แค่ยอดรวม) ---
+        // --- กราฟรายวัน ---
         function openChartModal() {
             renderDailyChart();
             chartModalObj.show();
@@ -769,9 +757,7 @@
             for(let d = 1; d <= daysInMonth; d++) {
                 labels.push(`${d} ${monthNamesShort[monthIndex]}`);
                 const dateKey = `${yearStr}-${monthStr}-${String(d).padStart(2,'0')}`;
-                const iData = incomeData[dateKey] || { total: 0 };
-                // โชว์แค่ยอดรวมในกราฟ
-                dataPts.push(iData.total);
+                dataPts.push(incomeData[dateKey] || 0);
             }
 
             if(dailyChartInstance) dailyChartInstance.destroy();
@@ -789,7 +775,7 @@
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }, // ซ่อน Label เล็กๆ ด้านบน
+                    plugins: { legend: { display: false } }, 
                     scales: { 
                         x: { ticks: { autoSkip: true, maxTicksLimit: 15 } }, 
                         y: { beginAtZero: true, ticks: { callback: function(value) { return '฿' + value.toLocaleString(); } } } 
@@ -799,18 +785,17 @@
         }
         const monthNamesShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
-        // --- Export to Excel (CSV) พร้อมแยกกะ ---
+        // --- Export to Excel (CSV) ---
         function exportIncomeToExcel() {
             const dates = Object.keys(incomeData).sort();
             if (dates.length === 0) return alert("ยังไม่มีข้อมูลรายได้ให้บันทึกครับ");
 
-            // \uFEFF คือ BOM ทำให้โปรแกรม Excel เปิดแล้วอ่านภาษาไทยได้
             let csvContent = "\uFEFF"; 
-            csvContent += "วันที่ (YYYY-MM-DD),กะเช้า (บาท),กะดึก (บาท),รายได้รวม (บาท)\n";
+            csvContent += "วันที่ (YYYY-MM-DD),รายได้สุทธิ (บาท)\n";
 
             dates.forEach(date => {
-                const iData = incomeData[date] || { shift1: 0, shift2: 0, total: 0 };
-                csvContent += `${date},${iData.shift1},${iData.shift2},${iData.total}\n`;
+                const amount = incomeData[date] || 0;
+                csvContent += `${date},${amount}\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
