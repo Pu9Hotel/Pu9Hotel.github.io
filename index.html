@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hotel System PRO - Colorful & Smart</title>
+    <title>Hotel System PRO - Smart UI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -24,13 +24,29 @@
         .building-title { border-bottom: 2px solid #dee2e6; padding-bottom: 10px; margin-bottom: 20px; font-weight: 600; color: var(--primary-dark); }
         .room-card {
             border-radius: 12px; border: none; color: white;
-            transition: all 0.2s ease; cursor: pointer; position: relative; min-height: 120px;
+            transition: all 0.2s ease; cursor: pointer; position: relative; min-height: 130px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
         .room-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px -5px rgba(0,0,0,0.3); filter: brightness(1.1); }
         
         .status-available { background-color: var(--success); }
         .status-occupied { background-color: var(--danger); }
+
+        /* จัดกลุ่มป้ายสถานะให้อยู่มุมขวาบน เรียงลงมาอย่างเป็นระเบียบ */
+        .badges-top-right {
+            position: absolute; top: 8px; right: 8px;
+            display: flex; flex-direction: column; align-items: flex-end; gap: 5px; z-index: 5;
+        }
+        .status-badge {
+            font-size: 0.65rem; padding: 4px 8px; border-radius: 12px; font-weight: bold; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); border: 1.5px solid rgba(255,255,255,0.9); white-space: nowrap;
+        }
+
+        .twin-badge {
+            position: absolute; top: 8px; left: 8px;
+            background: var(--twin); color: white; font-size: 0.65rem;
+            padding: 4px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
 
         .table-timeline-container { overflow-x: auto; background: white; border-radius: 12px; }
         .timeline-table th, .timeline-table td { min-width: 45px; text-align: center; vertical-align: middle; padding: 8px 4px; border: 1px solid #dee2e6; font-size: 0.85rem;}
@@ -182,7 +198,11 @@
                         <li class="nav-item"><button class="nav-link fw-bold rounded-pill px-4 shadow-sm text-warning" data-bs-toggle="pill" data-bs-target="#sum-shift2"><i class="bi bi-moon-fill"></i> กะกลางคืน</button></li>
                     </ul>
 
-                    <div class="tab-content" id="summaryTabsContent"></div>
+                    <div class="tab-content" id="summaryTabsContent">
+                        <div class="tab-pane fade show active" id="sum-total"></div>
+                        <div class="tab-pane fade" id="sum-shift1"></div>
+                        <div class="tab-pane fade" id="sum-shift2"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -383,7 +403,6 @@
         let currentRoom = null;
         let editingBookingId = null; 
         let activeFilter = 'all'; 
-
         let calDate = new Date();
 
         const roomModalObj = new bootstrap.Modal(document.getElementById('roomModal'));
@@ -501,6 +520,7 @@
         function createRoomCardHtml(roomNum) {
             const bookings = roomsData[roomNum] || [];
             const today = getTodayStr();
+
             const active = bookings.find(b => b.cin <= today && b.cout > today);
             const hasFuture = bookings.some(b => b.cin > today);
 
@@ -510,26 +530,29 @@
             
             const twinBadgeHtml = twinBeds.includes(roomNum) ? `<span class="twin-badge"><i class="bi bi-people-fill"></i> เตียงคู่</span>` : '';
             
-            let payBadgeHtml = '';
-            if (active && active.paymentMode) {
-                const badgeStyle = `position: absolute; top: 10px; right: 10px; font-size: 0.65rem; padding: 4px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3); border: 2px solid white; z-index: 5;`;
-                if (active.paymentMode === 'all') payBadgeHtml = `<span style="${badgeStyle}" class="text-white bg-success">จ่ายเงินแล้ว</span>`;
-                else if (active.paymentMode === 'daily') payBadgeHtml = `<span style="${badgeStyle}" class="text-dark bg-warning">จ่ายรายวัน</span>`;
-                else if (active.paymentMode === 'partial') payBadgeHtml = `<span style="${badgeStyle}" class="text-white bg-danger">จ่ายวันสุดท้าย</span>`;
-                else if (active.paymentMode === 'none') payBadgeHtml = `<span style="${badgeStyle}" class="text-white bg-dark">ไม่จ่าย</span>`;
+            // --- จัดการป้ายสถานะให้อยู่มุมขวาบนแบบ Flexbox ---
+            let topRightBadges = `<div class="badges-top-right">`;
+            
+            if (hasFuture) {
+                topRightBadges += `<span class="status-badge text-dark" style="background-color: var(--warning);">มีคิวจองล่วงหน้า</span>`;
             }
             
-            const futureClassHtml = hasFuture ? `<span class="badge bg-warning text-dark position-absolute bottom-0 end-0 mb-2 me-2 shadow-sm" style="font-size: 0.65rem;">มีคิวจอง</span>` : '';
+            if (active && active.paymentMode) {
+                if (active.paymentMode === 'all') topRightBadges += `<span class="status-badge text-white" style="background-color: #20c997;">จ่ายเงินแล้ว</span>`; // Teal
+                else if (active.paymentMode === 'daily') topRightBadges += `<span class="status-badge text-white" style="background-color: #fd7e14;">จ่ายรายวัน</span>`; // Orange
+                else if (active.paymentMode === 'partial') topRightBadges += `<span class="status-badge text-white" style="background-color: #e83e8c;">จ่ายวันสุดท้าย</span>`; // Magenta
+                else if (active.paymentMode === 'none') topRightBadges += `<span class="status-badge text-white" style="background-color: #495057;">ยังไม่จ่าย</span>`; // Gray
+            }
+            topRightBadges += `</div>`;
 
             return `
                 <div class="col-6 col-md-3 col-lg-2 room-card-wrapper" data-room="${roomNum}">
                     <div class="room-card ${statusClass} p-3 text-center shadow-sm" onclick="openRoom('${roomNum}')">
                         ${twinBadgeHtml}
-                        ${payBadgeHtml}
-                        <h4 class="fw-bold mb-1 mt-3">${roomNum}</h4>
+                        ${topRightBadges}
+                        <h4 class="fw-bold mb-1 mt-4">${roomNum}</h4>
                         <i class="bi ${icon} fs-1 opacity-75 mb-2"></i>
                         <div class="small fw-bold text-truncate w-100 px-2">${displayName}</div>
-                        ${futureClassHtml}
                     </div>
                 </div>
             `;
@@ -597,10 +620,10 @@
             calcFormPrice();
         }
 
+        // --- แก้ไขบั๊กการคำนวณเงินตอนเปิดโหมด Edit ---
         function calcFormPrice() {
-            if(editingBookingId) return; 
-
-            const cin = document.getElementById('cin').value; const cout = document.getElementById('cout').value;
+            const cin = document.getElementById('cin').value; 
+            const cout = document.getElementById('cout').value;
             const pricePerNight = parseInt(document.getElementById('roomPrice').value) || 0;
             let extraBed = parseInt(document.getElementById('extraBed').value) || 0;
             if(extraBed > 3) { extraBed = 3; document.getElementById('extraBed').value = 3; }
@@ -617,10 +640,13 @@
             const pricePerDay = pricePerNight + (extraBed * 150) + (pets * 100);
             total = pricePerDay * nights;
 
-            if(payMode === 'all') { amountInput.value = total; amountInput.disabled = true; } 
-            else if (payMode === 'daily') { amountInput.value = pricePerDay; amountInput.disabled = true; } 
-            else if (payMode === 'none') { amountInput.value = 0; amountInput.disabled = true; } 
-            else { amountInput.disabled = false; }
+            // อัปเดตช่องเงินจ่ายครั้งแรก เฉพาะตอนสร้างใหม่ (ไม่แก้ไข)
+            if(!editingBookingId) {
+                if(payMode === 'all') { amountInput.value = total; amountInput.disabled = true; } 
+                else if (payMode === 'daily') { amountInput.value = pricePerDay; amountInput.disabled = true; } 
+                else if (payMode === 'none') { amountInput.value = 0; amountInput.disabled = true; } 
+                else { amountInput.disabled = false; }
+            }
 
             document.getElementById('formTotalDisplay').innerText = `฿${total.toLocaleString()}`;
             updateRemainDisplayOnly();
@@ -632,6 +658,7 @@
             
             let paid = 0;
             if(editingBookingId) {
+                // ถ้าแก้ไขอยู่ เอายอดที่เคยจ่ายมาคำนวณลบ
                 const b = roomsData[currentRoom].find(x => x.id === editingBookingId);
                 paid = b ? (b.paidAmount || 0) : 0;
             } else {
@@ -784,9 +811,7 @@
             document.getElementById('cin').removeAttribute('max');
             document.getElementById('cin').removeAttribute('min'); 
             
-            document.getElementById('formTotalDisplay').innerText = `฿${booking.total.toLocaleString()}`;
-            const remain = booking.total - (booking.paidAmount||0);
-            document.getElementById('formRemainDisplay').innerText = `฿${remain < 0 ? 0 : remain.toLocaleString()}`;
+            calcFormPrice(); // บังคับให้คำนวณและแสดงยอดทันทีตอนเปิดโหมดแก้ไข
             
             document.getElementById('bookingFormSection').scrollIntoView({ behavior: 'smooth' });
         }
@@ -939,6 +964,7 @@
             document.getElementById('stat-shift2').innerText = `฿${(todayIncome.shift2?todayIncome.shift2.total:0).toLocaleString()}`;
         }
 
+        // --- แก้ไขบั๊กปุ่ม สรุปรายได้ (หน้าต่างรายงาน) ---
         function openSummaryModal() {
             renderDailySummary();
             summaryModalObj.show();
@@ -975,11 +1001,10 @@
                 </div>
             `;
 
-            document.getElementById('summaryTabsContent').innerHTML = `
-                <div class="tab-pane fade show active" id="sum-total">${renderPane(dData, `รวมทั้งหมดประจำวัน (${formatThaiDate(dateVal)})`, 'text-primary', 'bi-wallet2')}</div>
-                <div class="tab-pane fade" id="sum-shift1">${renderPane(dData.shift1, `กะกลางวัน (06.30 - 16.29)`, 'text-info', 'bi-sun-fill')}</div>
-                <div class="tab-pane fade" id="sum-shift2">${renderPane(dData.shift2, `กะกลางคืน (16.30 - 06.29)`, 'text-warning', 'bi-moon-fill')}</div>
-            `;
+            // แก้บั๊กตรงนี้: แทนที่จะไปทับโครงสร้างแท็บ ให้แทรกเนื้อหาเข้าไปในแต่ละกล่องอย่างปลอดภัย
+            document.getElementById('sum-total').innerHTML = renderPane(dData, `รวมทั้งหมดประจำวัน (${formatThaiDate(dateVal)})`, 'text-primary', 'bi-wallet2');
+            document.getElementById('sum-shift1').innerHTML = renderPane(dData.shift1, `กะกลางวัน (06.30 - 16.29)`, 'text-info', 'bi-sun-fill');
+            document.getElementById('sum-shift2').innerHTML = renderPane(dData.shift2, `กะกลางคืน (16.30 - 06.29)`, 'text-warning', 'bi-moon-fill');
         }
 
         function exportIncomeToExcel() {
