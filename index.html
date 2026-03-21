@@ -32,7 +32,7 @@
         .status-available { background-color: var(--success); }
         .status-occupied { background-color: var(--danger); }
 
-        /* จัดกลุ่มป้ายสถานะให้อยู่มุมขวาบน เรียงลงมาอย่างเป็นระเบียบ */
+        /* ป้ายแจ้งเตือนขวาบนสุด (คิวจอง) */
         .badges-top-right {
             position: absolute; top: 8px; right: 8px;
             display: flex; flex-direction: column; align-items: flex-end; gap: 5px; z-index: 5;
@@ -262,9 +262,9 @@
                                     <div class="col-md-4"></div>
 
                                     <div class="col-12 mt-3 pt-3 border-top" id="initialPaymentSection">
-                                        <label class="form-label small fw-bold text-primary mb-2"><i class="bi bi-cash-coin"></i> การชำระเงินตอนเช็คอิน</label>
+                                        <label class="form-label small fw-bold text-primary mb-2" id="paySectionTitle"><i class="bi bi-cash-coin"></i> การชำระเงินตอนเช็คอิน</label>
                                         <div class="row g-2 align-items-end">
-                                            <div class="col-md-4">
+                                            <div class="col-md-4" id="payModeCol">
                                                 <select id="initialPayMode" class="form-select" onchange="calcFormPrice()">
                                                     <option value="all">จ่ายทั้งหมด (จ่ายทั้งหมดตอนเข้าพัก)</option>
                                                     <option value="daily">จ่ายรายวัน (จ่ายค่าห้องทุกวัน)</option>
@@ -273,7 +273,7 @@
                                                 </select>
                                             </div>
                                             <div class="col-md-4">
-                                                <label class="small text-muted">ยอดรับเงิน (บาท)</label>
+                                                <label class="small text-muted" id="initialPayAmountLabel">ยอดรับเงิน (บาท)</label>
                                                 <input type="number" id="initialPayAmount" class="form-control fw-bold text-success" value="0" min="0" oninput="updateRemainDisplayOnly()">
                                             </div>
                                             <div class="col-md-4">
@@ -403,6 +403,7 @@
         let currentRoom = null;
         let editingBookingId = null; 
         let activeFilter = 'all'; 
+
         let calDate = new Date();
 
         const roomModalObj = new bootstrap.Modal(document.getElementById('roomModal'));
@@ -517,6 +518,7 @@
             });
         }
 
+        // --- แก้ไขการแสดงผลป้ายสถานะตรงนี้ครับ ---
         function createRoomCardHtml(roomNum) {
             const bookings = roomsData[roomNum] || [];
             const today = getTodayStr();
@@ -530,18 +532,19 @@
             
             const twinBadgeHtml = twinBeds.includes(roomNum) ? `<span class="twin-badge"><i class="bi bi-people-fill"></i> เตียงคู่</span>` : '';
             
-            // --- จัดการป้ายสถานะให้อยู่มุมขวาบนแบบ Flexbox ---
-            let topRightBadges = `<div class="badges-top-right">`;
-            
-            if (hasFuture) {
-                topRightBadges += `<span class="status-badge text-dark" style="background-color: var(--warning);">มีคิวจองล่วงหน้า</span>`;
+            let payBadgeHtml = '';
+            if (active && active.paymentMode) {
+                // ปรับป้ายเป็น display: inline-block วางแทรกกลาง
+                const badgeStyle = `font-size: 0.65rem; padding: 3px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.3); border: 1.5px solid white; display: inline-block; margin-top: 4px; margin-bottom: 4px;`;
+                if (active.paymentMode === 'all') payBadgeHtml = `<span style="${badgeStyle}; background-color: #20c997;" class="text-white">จ่ายเงินแล้ว</span>`; // Teal
+                else if (active.paymentMode === 'daily') payBadgeHtml = `<span style="${badgeStyle}; background-color: #fd7e14;" class="text-white">จ่ายรายวัน</span>`; // Orange
+                else if (active.paymentMode === 'partial') payBadgeHtml = `<span style="${badgeStyle}; background-color: #e83e8c;" class="text-white">จ่ายวันสุดท้าย</span>`; // Magenta
+                else if (active.paymentMode === 'none') payBadgeHtml = `<span style="${badgeStyle}; background-color: #495057;" class="text-white">ยังไม่จ่าย</span>`; // Gray
             }
             
-            if (active && active.paymentMode) {
-                if (active.paymentMode === 'all') topRightBadges += `<span class="status-badge text-white" style="background-color: #20c997;">จ่ายเงินแล้ว</span>`; // Teal
-                else if (active.paymentMode === 'daily') topRightBadges += `<span class="status-badge text-white" style="background-color: #fd7e14;">จ่ายรายวัน</span>`; // Orange
-                else if (active.paymentMode === 'partial') topRightBadges += `<span class="status-badge text-white" style="background-color: #e83e8c;">จ่ายวันสุดท้าย</span>`; // Magenta
-                else if (active.paymentMode === 'none') topRightBadges += `<span class="status-badge text-white" style="background-color: #495057;">ยังไม่จ่าย</span>`; // Gray
+            let topRightBadges = `<div class="badges-top-right">`;
+            if (hasFuture) {
+                topRightBadges += `<span class="status-badge text-dark" style="background-color: var(--warning);">มีคิวจอง</span>`;
             }
             topRightBadges += `</div>`;
 
@@ -550,8 +553,9 @@
                     <div class="room-card ${statusClass} p-3 text-center shadow-sm" onclick="openRoom('${roomNum}')">
                         ${twinBadgeHtml}
                         ${topRightBadges}
-                        <h4 class="fw-bold mb-1 mt-4">${roomNum}</h4>
-                        <i class="bi ${icon} fs-1 opacity-75 mb-2"></i>
+                        <h4 class="fw-bold mb-0 mt-3">${roomNum}</h4>
+                        ${payBadgeHtml}
+                        <i class="bi ${icon} fs-1 opacity-75 mb-1 mt-1"></i>
                         <div class="small fw-bold text-truncate w-100 px-2">${displayName}</div>
                     </div>
                 </div>
@@ -606,24 +610,34 @@
             document.getElementById('timelineContainer').innerHTML = html;
         }
 
+        // --- แก้ไข Toggle Form & Reserve Mode ---
         function toggleFormMode() {
             const mode = document.querySelector('input[name="actionType"]:checked').value;
             const cinInput = document.getElementById('cin');
             const today = getTodayStr();
+            const payModeCol = document.getElementById('payModeCol');
+            const paySectionTitle = document.getElementById('paySectionTitle');
+            const initialPayAmountLabel = document.getElementById('initialPayAmountLabel');
 
             if (mode === 'checkin') {
                 cinInput.value = today; cinInput.min = today; cinInput.max = today; 
+                payModeCol.style.display = 'block';
+                paySectionTitle.innerHTML = '<i class="bi bi-cash-coin"></i> การชำระเงินตอนเช็คอิน';
+                initialPayAmountLabel.innerText = 'ยอดรับเงิน (บาท)';
             } else {
                 cinInput.removeAttribute('max'); 
                 cinInput.min = today; 
+                payModeCol.style.display = 'none'; // ซ่อน Dropdown ถือเป็นมัดจำ
+                paySectionTitle.innerHTML = '<i class="bi bi-cash-coin"></i> การชำระเงินมัดจำล่วงหน้า (ถ้ามี)';
+                initialPayAmountLabel.innerText = 'ยอดมัดจำ (บาท)';
             }
             calcFormPrice();
         }
 
-        // --- แก้ไขบั๊กการคำนวณเงินตอนเปิดโหมด Edit ---
         function calcFormPrice() {
-            const cin = document.getElementById('cin').value; 
-            const cout = document.getElementById('cout').value;
+            if(editingBookingId) return; 
+
+            const cin = document.getElementById('cin').value; const cout = document.getElementById('cout').value;
             const pricePerNight = parseInt(document.getElementById('roomPrice').value) || 0;
             let extraBed = parseInt(document.getElementById('extraBed').value) || 0;
             if(extraBed > 3) { extraBed = 3; document.getElementById('extraBed').value = 3; }
@@ -631,6 +645,7 @@
             
             const payMode = document.getElementById('initialPayMode').value;
             const amountInput = document.getElementById('initialPayAmount');
+            const mode = document.querySelector('input[name="actionType"]:checked').value;
 
             let total = 0; let nights = 1;
             if(cin && cout && cout > cin) {
@@ -640,12 +655,14 @@
             const pricePerDay = pricePerNight + (extraBed * 150) + (pets * 100);
             total = pricePerDay * nights;
 
-            // อัปเดตช่องเงินจ่ายครั้งแรก เฉพาะตอนสร้างใหม่ (ไม่แก้ไข)
-            if(!editingBookingId) {
+            if (mode === 'checkin') {
                 if(payMode === 'all') { amountInput.value = total; amountInput.disabled = true; } 
                 else if (payMode === 'daily') { amountInput.value = pricePerDay; amountInput.disabled = true; } 
                 else if (payMode === 'none') { amountInput.value = 0; amountInput.disabled = true; } 
                 else { amountInput.disabled = false; }
+            } else {
+                // โหมด Reserve ปลดล็อกให้พิมพ์ยอดมัดจำอิสระ
+                amountInput.disabled = false;
             }
 
             document.getElementById('formTotalDisplay').innerText = `฿${total.toLocaleString()}`;
@@ -658,7 +675,6 @@
             
             let paid = 0;
             if(editingBookingId) {
-                // ถ้าแก้ไขอยู่ เอายอดที่เคยจ่ายมาคำนวณลบ
                 const b = roomsData[currentRoom].find(x => x.id === editingBookingId);
                 paid = b ? (b.paidAmount || 0) : 0;
             } else {
@@ -758,7 +774,7 @@
             } else {
                 listDiv.innerHTML = "";
                 futures.forEach(b => {
-                    const paidBadge = (b.paidAmount > 0) ? `<span class="badge bg-success ms-2">มัดจำ ฿${b.paidAmount}</span>` : '';
+                    const paidBadge = (b.paidAmount > 0) ? `<span class="badge bg-success ms-2">มัดจำ ฿${b.paidAmount.toLocaleString()}</span>` : '';
                     listDiv.innerHTML += `
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
                             <div>
@@ -776,7 +792,7 @@
 
             document.getElementById('guestName').value = ""; document.getElementById('guestPhone').value = ""; document.getElementById('guestIdCard').value = "";
             document.getElementById('roomPrice').value = 0; document.getElementById('extraBed').value = 0; document.getElementById('pets').value = 0;
-            document.getElementById('initialPayMode').value = 'all';
+            document.getElementById('initialPayMode').value = 'all'; document.getElementById('initialPayAmount').value = 0;
             
             document.getElementById('typeCheckin').checked = true; toggleFormMode();
             
@@ -811,7 +827,7 @@
             document.getElementById('cin').removeAttribute('max');
             document.getElementById('cin').removeAttribute('min'); 
             
-            calcFormPrice(); // บังคับให้คำนวณและแสดงยอดทันทีตอนเปิดโหมดแก้ไข
+            calcFormPrice(); // ให้คำนวณสด
             
             document.getElementById('bookingFormSection').scrollIntoView({ behavior: 'smooth' });
         }
@@ -829,6 +845,7 @@
 
             document.getElementById('guestName').value = ""; document.getElementById('guestPhone').value = ""; document.getElementById('guestIdCard').value = "";
             document.getElementById('roomPrice').value = 0; document.getElementById('extraBed').value = 0; document.getElementById('pets').value = 0;
+            document.getElementById('initialPayAmount').value = 0;
             document.getElementById('typeCheckin').checked = true; toggleFormMode(); calcFormPrice();
         }
 
@@ -866,23 +883,31 @@
                 
                 roomsData[currentRoom][index] = { ...b, name, phone, idCard, cin, cout, price, extraBed, pets, total };
                 alert("บันทึกการแก้ไขข้อมูลเรียบร้อย");
+                roomsData[currentRoom].sort((a, b) => a.cin.localeCompare(b.cin));
+                save(); refreshAll(); roomModalObj.hide();
             } else {
                 const paidAmount = parseInt(document.getElementById('initialPayAmount').value) || 0;
-                const payMode = document.getElementById('initialPayMode').value;
-                const payMethod = document.getElementById('initialPayMethod').value;
                 const mode = document.querySelector('input[name="actionType"]:checked').value;
+                const payMode = mode === 'reserve' ? 'partial' : document.getElementById('initialPayMode').value;
+                const payMethod = document.getElementById('initialPayMethod').value;
 
                 roomsData[currentRoom].push({ 
                     id: Date.now().toString(), name, phone, idCard, cin, cout, price, extraBed, pets, total, 
                     paymentMode: payMode, paidAmount: paidAmount
                 });
                 
-                if(mode === 'checkin') recordDailyEvent('checkin', paidAmount, payMethod);
-                else recordDailyEvent('reserve', paidAmount, payMethod);
+                roomsData[currentRoom].sort((a, b) => a.cin.localeCompare(b.cin));
+                save(); refreshAll(); 
+                
+                if(mode === 'checkin') {
+                    recordDailyEvent('checkin', paidAmount, payMethod);
+                    roomModalObj.hide();
+                } else {
+                    recordDailyEvent('reserve', paidAmount, payMethod);
+                    alert("✅ จองห้องพักเรียบร้อยแล้ว");
+                    openRoom(currentRoom); // เคลียร์หน้าและโหลดใหม่โชว์รายการจอง
+                }
             }
-            
-            roomsData[currentRoom].sort((a, b) => a.cin.localeCompare(b.cin));
-            save(); refreshAll(); roomModalObj.hide();
         }
 
         function receiveAdditionalPayment() {
@@ -964,7 +989,7 @@
             document.getElementById('stat-shift2').innerText = `฿${(todayIncome.shift2?todayIncome.shift2.total:0).toLocaleString()}`;
         }
 
-        // --- แก้ไขบั๊กปุ่ม สรุปรายได้ (หน้าต่างรายงาน) ---
+        // --- หน้าต่างสรุปรายงานแบบละเอียด ---
         function openSummaryModal() {
             renderDailySummary();
             summaryModalObj.show();
@@ -1001,10 +1026,11 @@
                 </div>
             `;
 
-            // แก้บั๊กตรงนี้: แทนที่จะไปทับโครงสร้างแท็บ ให้แทรกเนื้อหาเข้าไปในแต่ละกล่องอย่างปลอดภัย
-            document.getElementById('sum-total').innerHTML = renderPane(dData, `รวมทั้งหมดประจำวัน (${formatThaiDate(dateVal)})`, 'text-primary', 'bi-wallet2');
-            document.getElementById('sum-shift1').innerHTML = renderPane(dData.shift1, `กะกลางวัน (06.30 - 16.29)`, 'text-info', 'bi-sun-fill');
-            document.getElementById('sum-shift2').innerHTML = renderPane(dData.shift2, `กะกลางคืน (16.30 - 06.29)`, 'text-warning', 'bi-moon-fill');
+            document.getElementById('summaryTabsContent').innerHTML = `
+                <div class="tab-pane fade show active" id="sum-total">${renderPane(dData, `รวมทั้งหมดประจำวัน (${formatThaiDate(dateVal)})`, 'text-primary', 'bi-wallet2')}</div>
+                <div class="tab-pane fade" id="sum-shift1">${renderPane(dData.shift1, `กะกลางวัน (06.30 - 16.29)`, 'text-info', 'bi-sun-fill')}</div>
+                <div class="tab-pane fade" id="sum-shift2">${renderPane(dData.shift2, `กะกลางคืน (16.30 - 06.29)`, 'text-warning', 'bi-moon-fill')}</div>
+            `;
         }
 
         function exportIncomeToExcel() {
