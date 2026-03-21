@@ -22,31 +22,46 @@
         .content-card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 2rem;}
         
         .building-title { border-bottom: 2px solid #dee2e6; padding-bottom: 10px; margin-bottom: 20px; font-weight: 600; color: var(--primary-dark); }
+        
+        /* ล็อกขนาดห้องให้เท่ากันเป๊ะ ไม่มียืด */
         .room-card {
             border-radius: 12px; border: none; color: white;
-            transition: all 0.2s ease; cursor: pointer; position: relative; min-height: 130px;
+            transition: all 0.2s ease; cursor: pointer; position: relative; 
+            height: 145px; /* ล็อกความสูง */
             display: flex; flex-direction: column; justify-content: center; align-items: center;
+            overflow: hidden;
         }
         .room-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px -5px rgba(0,0,0,0.3); filter: brightness(1.1); }
         
         .status-available { background-color: var(--success); }
         .status-occupied { background-color: var(--danger); }
 
-        /* ป้ายแจ้งเตือนขวาบนสุด (คิวจอง) */
+        /* ป้ายแจ้งเตือนมุมขวาบน (คิวจอง) */
         .badges-top-right {
-            position: absolute; top: 8px; right: 8px;
-            display: flex; flex-direction: column; align-items: flex-end; gap: 5px; z-index: 5;
+            position: absolute; top: 8px; right: 8px; z-index: 5;
         }
         .status-badge {
             font-size: 0.65rem; padding: 4px 8px; border-radius: 12px; font-weight: bold; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2); border: 1.5px solid rgba(255,255,255,0.9); white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); border: 1.5px solid rgba(255,255,255,0.9);
         }
 
+        /* ป้ายเตียงคู่มุมซ้ายบน */
         .twin-badge {
             position: absolute; top: 8px; left: 8px;
             background: var(--twin); color: white; font-size: 0.65rem;
             padding: 4px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
+
+        /* ป้ายสถานะการจ่ายเงิน ย้ายมาอยู่ ตรงกลาง-ล่างสุด */
+        .pay-badge {
+            position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+            font-size: 0.65rem; padding: 3px 10px; border-radius: 12px; font-weight: bold; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 2px solid white; display: inline-block; white-space: nowrap; z-index: 5;
+        }
+        .pay-all { background-color: #20c997; } /* ฟ้าอมเขียว */
+        .pay-daily { background-color: #fd7e14; } /* ส้ม */
+        .pay-partial { background-color: #e83e8c; } /* ชมพูเข้ม */
+        .pay-none { background-color: #495057; } /* เทาเข้ม */
 
         .table-timeline-container { overflow-x: auto; background: white; border-radius: 12px; }
         .timeline-table th, .timeline-table td { min-width: 45px; text-align: center; vertical-align: middle; padding: 8px 4px; border: 1px solid #dee2e6; font-size: 0.85rem;}
@@ -74,7 +89,7 @@
 
     <div class="header text-center">
         <h2 class="fw-bold mb-1"><i class="bi bi-buildings-fill me-2"></i> HOTEL SYSTEM PRO</h2>
-        <p class="mb-0 opacity-75 text-light">ระบบบริหารจัดการห้องพัก (กะกลางวัน & กะกลางคืน)</p>
+        <p class="mb-0 opacity-75 text-light">ระบบบริหารจัดการห้องพักและบัญชีรายวัน (กะกลางวัน & กะกลางคืน)</p>
     </div>
 
     <div class="sticky-controls">
@@ -518,7 +533,6 @@
             });
         }
 
-        // --- แก้ไขการแสดงผลป้ายสถานะตรงนี้ครับ ---
         function createRoomCardHtml(roomNum) {
             const bookings = roomsData[roomNum] || [];
             const today = getTodayStr();
@@ -532,31 +546,31 @@
             
             const twinBadgeHtml = twinBeds.includes(roomNum) ? `<span class="twin-badge"><i class="bi bi-people-fill"></i> เตียงคู่</span>` : '';
             
-            let payBadgeHtml = '';
-            if (active && active.paymentMode) {
-                // ปรับป้ายเป็น display: inline-block วางแทรกกลาง
-                const badgeStyle = `font-size: 0.65rem; padding: 3px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.3); border: 1.5px solid white; display: inline-block; margin-top: 4px; margin-bottom: 4px;`;
-                if (active.paymentMode === 'all') payBadgeHtml = `<span style="${badgeStyle}; background-color: #20c997;" class="text-white">จ่ายเงินแล้ว</span>`; // Teal
-                else if (active.paymentMode === 'daily') payBadgeHtml = `<span style="${badgeStyle}; background-color: #fd7e14;" class="text-white">จ่ายรายวัน</span>`; // Orange
-                else if (active.paymentMode === 'partial') payBadgeHtml = `<span style="${badgeStyle}; background-color: #e83e8c;" class="text-white">จ่ายวันสุดท้าย</span>`; // Magenta
-                else if (active.paymentMode === 'none') payBadgeHtml = `<span style="${badgeStyle}; background-color: #495057;" class="text-white">ยังไม่จ่าย</span>`; // Gray
-            }
-            
+            // --- จัดการป้ายสถานะให้อยู่มุมขวาบน และ ตรงกลางล่าง ---
             let topRightBadges = `<div class="badges-top-right">`;
             if (hasFuture) {
                 topRightBadges += `<span class="status-badge text-dark" style="background-color: var(--warning);">มีคิวจอง</span>`;
             }
             topRightBadges += `</div>`;
 
+            let payBadgeHtml = '';
+            if (active && active.paymentMode) {
+                const badgeStyle = `position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 0.65rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 2px solid white; display: inline-block; white-space: nowrap; z-index: 5;`;
+                if (active.paymentMode === 'all') payBadgeHtml = `<span style="${badgeStyle}" class="text-white pay-all">จ่ายเงินแล้ว</span>`; 
+                else if (active.paymentMode === 'daily') payBadgeHtml = `<span style="${badgeStyle}" class="text-white pay-daily">จ่ายรายวัน</span>`; 
+                else if (active.paymentMode === 'partial') payBadgeHtml = `<span style="${badgeStyle}" class="text-white pay-partial">จ่ายวันสุดท้าย</span>`; 
+                else if (active.paymentMode === 'none') payBadgeHtml = `<span style="${badgeStyle}" class="text-white pay-none">ยังไม่จ่าย</span>`; 
+            }
+
             return `
                 <div class="col-6 col-md-3 col-lg-2 room-card-wrapper" data-room="${roomNum}">
                     <div class="room-card ${statusClass} p-3 text-center shadow-sm" onclick="openRoom('${roomNum}')">
                         ${twinBadgeHtml}
                         ${topRightBadges}
-                        <h4 class="fw-bold mb-0 mt-3">${roomNum}</h4>
-                        ${payBadgeHtml}
+                        <h4 class="fw-bold mb-0 mt-2">${roomNum}</h4>
                         <i class="bi ${icon} fs-1 opacity-75 mb-1 mt-1"></i>
-                        <div class="small fw-bold text-truncate w-100 px-2">${displayName}</div>
+                        <div class="small fw-bold text-truncate w-100 px-2" style="margin-bottom: 20px;">${displayName}</div>
+                        ${payBadgeHtml}
                     </div>
                 </div>
             `;
@@ -610,7 +624,6 @@
             document.getElementById('timelineContainer').innerHTML = html;
         }
 
-        // --- แก้ไข Toggle Form & Reserve Mode ---
         function toggleFormMode() {
             const mode = document.querySelector('input[name="actionType"]:checked').value;
             const cinInput = document.getElementById('cin');
@@ -627,7 +640,7 @@
             } else {
                 cinInput.removeAttribute('max'); 
                 cinInput.min = today; 
-                payModeCol.style.display = 'none'; // ซ่อน Dropdown ถือเป็นมัดจำ
+                payModeCol.style.display = 'none'; 
                 paySectionTitle.innerHTML = '<i class="bi bi-cash-coin"></i> การชำระเงินมัดจำล่วงหน้า (ถ้ามี)';
                 initialPayAmountLabel.innerText = 'ยอดมัดจำ (บาท)';
             }
@@ -661,7 +674,6 @@
                 else if (payMode === 'none') { amountInput.value = 0; amountInput.disabled = true; } 
                 else { amountInput.disabled = false; }
             } else {
-                // โหมด Reserve ปลดล็อกให้พิมพ์ยอดมัดจำอิสระ
                 amountInput.disabled = false;
             }
 
@@ -803,6 +815,7 @@
             roomModalObj.show();
         }
 
+        // --- แก้ไขข้อมูลบั๊กฟรี 100% ---
         function editBooking(bookingId) {
             const booking = roomsData[currentRoom].find(b => b.id === bookingId);
             if(!booking) return;
@@ -827,7 +840,7 @@
             document.getElementById('cin').removeAttribute('max');
             document.getElementById('cin').removeAttribute('min'); 
             
-            calcFormPrice(); // ให้คำนวณสด
+            calcFormPrice(); // บังคับให้คำนวณและแสดงยอดทันที
             
             document.getElementById('bookingFormSection').scrollIntoView({ behavior: 'smooth' });
         }
@@ -905,7 +918,7 @@
                 } else {
                     recordDailyEvent('reserve', paidAmount, payMethod);
                     alert("✅ จองห้องพักเรียบร้อยแล้ว");
-                    openRoom(currentRoom); // เคลียร์หน้าและโหลดใหม่โชว์รายการจอง
+                    openRoom(currentRoom); 
                 }
             }
         }
@@ -989,7 +1002,7 @@
             document.getElementById('stat-shift2').innerText = `฿${(todayIncome.shift2?todayIncome.shift2.total:0).toLocaleString()}`;
         }
 
-        // --- หน้าต่างสรุปรายงานแบบละเอียด ---
+        // --- แก้ไขบั๊กปุ่ม สรุปรายได้ (หน้าต่างรายงาน) 100% ---
         function openSummaryModal() {
             renderDailySummary();
             summaryModalObj.show();
@@ -999,11 +1012,17 @@
             const dateVal = document.getElementById('summaryDatePicker').value; 
             if(!dateVal) return;
 
-            const dData = incomeData[dateVal] || { 
-                shift1: { total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 },
-                shift2: { total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 },
-                total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 
-            };
+            let dData = incomeData[dateVal];
+            if (!dData) {
+                dData = { 
+                    shift1: { total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 },
+                    shift2: { total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 },
+                    total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 
+                };
+            }
+            
+            const s1 = dData.shift1 || { total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 };
+            const s2 = dData.shift2 || { total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 };
             
             const renderPane = (data, title, colorClass, iconClass) => `
                 <div class="p-4 border rounded-4 bg-white shadow-sm mt-3">
@@ -1011,26 +1030,25 @@
                     <div class="row g-4">
                         <div class="col-md-6 border-end-md">
                             <h6 class="text-muted small fw-bold">ยอดเงินรายได้</h6>
-                            <h2 class="${colorClass} fw-bold mb-3">฿${data.total.toLocaleString()}</h2>
-                            <div class="d-flex justify-content-between mb-1"><span>เงินสด:</span> <span class="fw-bold">฿${data.cash.toLocaleString()}</span></div>
-                            <div class="d-flex justify-content-between"><span>โอน/QR:</span> <span class="fw-bold text-primary">฿${data.qr.toLocaleString()}</span></div>
+                            <h2 class="${colorClass} fw-bold mb-3">฿${(data.total || 0).toLocaleString()}</h2>
+                            <div class="d-flex justify-content-between mb-1"><span>เงินสด:</span> <span class="fw-bold">฿${(data.cash || 0).toLocaleString()}</span></div>
+                            <div class="d-flex justify-content-between"><span>โอน/QR:</span> <span class="fw-bold text-primary">฿${(data.qr || 0).toLocaleString()}</span></div>
                         </div>
                         <div class="col-md-6">
                             <h6 class="text-muted small fw-bold">สถิติห้องพัก</h6>
-                            <div class="d-flex justify-content-between mb-2"><span>เช็คอินเข้าพัก:</span> <span class="fw-bold">${data.checkins} ห้อง</span></div>
-                            <div class="d-flex justify-content-between mb-2"><span>ส่งเช็คเอาท์:</span> <span class="fw-bold text-danger">${data.checkouts} ห้อง</span></div>
-                            <div class="d-flex justify-content-between mb-2"><span>จองห้องเพิ่ม:</span> <span class="fw-bold text-warning">${data.newBooks} ห้อง</span></div>
-                            <div class="d-flex justify-content-between"><span>รับเงินมัดจำมา:</span> <span class="fw-bold text-success">฿${data.depositTotal.toLocaleString()}</span></div>
+                            <div class="d-flex justify-content-between mb-2"><span>เช็คอินเข้าพัก:</span> <span class="fw-bold">${data.checkins || 0} ห้อง</span></div>
+                            <div class="d-flex justify-content-between mb-2"><span>ส่งเช็คเอาท์:</span> <span class="fw-bold text-danger">${data.checkouts || 0} ห้อง</span></div>
+                            <div class="d-flex justify-content-between mb-2"><span>จองห้องเพิ่ม:</span> <span class="fw-bold text-warning">${data.newBooks || 0} ห้อง</span></div>
+                            <div class="d-flex justify-content-between"><span>รับเงินมัดจำมา:</span> <span class="fw-bold text-success">฿${(data.depositTotal || 0).toLocaleString()}</span></div>
                         </div>
                     </div>
                 </div>
             `;
 
-            document.getElementById('summaryTabsContent').innerHTML = `
-                <div class="tab-pane fade show active" id="sum-total">${renderPane(dData, `รวมทั้งหมดประจำวัน (${formatThaiDate(dateVal)})`, 'text-primary', 'bi-wallet2')}</div>
-                <div class="tab-pane fade" id="sum-shift1">${renderPane(dData.shift1, `กะกลางวัน (06.30 - 16.29)`, 'text-info', 'bi-sun-fill')}</div>
-                <div class="tab-pane fade" id="sum-shift2">${renderPane(dData.shift2, `กะกลางคืน (16.30 - 06.29)`, 'text-warning', 'bi-moon-fill')}</div>
-            `;
+            // ใช้การแทรกเนื้อหาทีละ Tab เพื่อไม่ให้โครงสร้าง Bootstrap พัง
+            document.getElementById('sum-total').innerHTML = renderPane(dData, `รวมทั้งหมดประจำวัน (${formatThaiDate(dateVal)})`, 'text-primary', 'bi-wallet2');
+            document.getElementById('sum-shift1').innerHTML = renderPane(s1, `กะกลางวัน (06.30 - 16.29)`, 'text-info', 'bi-sun-fill');
+            document.getElementById('sum-shift2').innerHTML = renderPane(s2, `กะกลางคืน (16.30 - 06.29)`, 'text-warning', 'bi-moon-fill');
         }
 
         function exportIncomeToExcel() {
