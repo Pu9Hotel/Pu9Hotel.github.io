@@ -27,7 +27,7 @@
         .room-card {
             border-radius: 12px; border: none; color: white;
             transition: all 0.2s ease; cursor: pointer; position: relative; 
-            height: 145px; /* ล็อกความสูง */
+            height: 145px; 
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             overflow: hidden;
         }
@@ -51,17 +51,6 @@
             background: var(--twin); color: white; font-size: 0.65rem;
             padding: 4px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-
-        /* ป้ายสถานะการจ่ายเงิน ย้ายมาอยู่ ตรงกลาง-ล่างสุด */
-        .pay-badge {
-            position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
-            font-size: 0.65rem; padding: 3px 10px; border-radius: 12px; font-weight: bold; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 2px solid white; display: inline-block; white-space: nowrap; z-index: 5;
-        }
-        .pay-all { background-color: #20c997; } /* ฟ้าอมเขียว */
-        .pay-daily { background-color: #fd7e14; } /* ส้ม */
-        .pay-partial { background-color: #e83e8c; } /* ชมพูเข้ม */
-        .pay-none { background-color: #495057; } /* เทาเข้ม */
 
         .table-timeline-container { overflow-x: auto; background: white; border-radius: 12px; }
         .timeline-table th, .timeline-table td { min-width: 45px; text-align: center; vertical-align: middle; padding: 8px 4px; border: 1px solid #dee2e6; font-size: 0.85rem;}
@@ -89,7 +78,7 @@
 
     <div class="header text-center">
         <h2 class="fw-bold mb-1"><i class="bi bi-buildings-fill me-2"></i> HOTEL SYSTEM PRO</h2>
-        <p class="mb-0 opacity-75 text-light">ระบบบริหารจัดการห้องพักและบัญชีรายวัน (กะกลางวัน & กะกลางคืน)</p>
+        <p class="mb-0 opacity-75 text-light">ระบบบริหารจัดการห้องพัก (กะกลางวัน & กะกลางคืน)</p>
     </div>
 
     <div class="sticky-controls">
@@ -398,6 +387,7 @@
         let roomsData = JSON.parse(localStorage.getItem('hotel_queue_rooms')) || {};
         let incomeData = JSON.parse(localStorage.getItem('hotel_queue_income')) || {};
         
+        // ไมเกรตโครงสร้างข้อมูล
         for(let key in incomeData) {
             if(typeof incomeData[key] === 'number') {
                 incomeData[key] = {
@@ -418,11 +408,21 @@
         let currentRoom = null;
         let editingBookingId = null; 
         let activeFilter = 'all'; 
-
         let calDate = new Date();
 
         const roomModalObj = new bootstrap.Modal(document.getElementById('roomModal'));
         const summaryModalObj = new bootstrap.Modal(document.getElementById('summaryModal'));
+
+        // --- ฟังก์ชันตัดคำนำหน้า และเอาเฉพาะชื่อแรก ---
+        function getShortName(fullName) {
+            if (!fullName) return '';
+            let parts = fullName.trim().split(/\s+/);
+            const titles = ['นาย', 'นาง', 'นางสาว', 'ด.ช.', 'ด.ญ.', 'mr', 'ms', 'mrs', 'mr.', 'ms.', 'mrs.'];
+            if (titles.includes(parts[0].toLowerCase()) && parts.length > 1) {
+                return parts[1]; // ดึงคำที่สอง ถ้าคำแรกคือคำนำหน้า
+            }
+            return parts[0]; // ดึงคำแรก
+        }
 
         function formatThaiDate(dateStr) {
             if(!dateStr) return '-';
@@ -541,12 +541,14 @@
             const hasFuture = bookings.some(b => b.cin > today);
 
             let statusClass = active ? 'status-occupied' : 'status-available';
-            let displayName = active ? active.name : 'ว่างพร้อมใช้';
+            
+            // ดึงเฉพาะชื่อแรกมาโชว์ถ้ายาวไป
+            let displayName = active ? getShortName(active.name) : 'ว่างพร้อมใช้';
             let icon = active ? 'bi-door-closed-fill' : 'bi-door-open-fill';
             
             const twinBadgeHtml = twinBeds.includes(roomNum) ? `<span class="twin-badge"><i class="bi bi-people-fill"></i> เตียงคู่</span>` : '';
             
-            // --- จัดการป้ายสถานะให้อยู่มุมขวาบน และ ตรงกลางล่าง ---
+            // --- จัดการป้ายสถานะ (ย้ายไปขวาบน และตรงกลาง) ---
             let topRightBadges = `<div class="badges-top-right">`;
             if (hasFuture) {
                 topRightBadges += `<span class="status-badge text-dark" style="background-color: var(--warning);">มีคิวจอง</span>`;
@@ -555,21 +557,22 @@
 
             let payBadgeHtml = '';
             if (active && active.paymentMode) {
-                const badgeStyle = `position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 0.65rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 2px solid white; display: inline-block; white-space: nowrap; z-index: 5;`;
-                if (active.paymentMode === 'all') payBadgeHtml = `<span style="${badgeStyle}" class="text-white pay-all">จ่ายเงินแล้ว</span>`; 
-                else if (active.paymentMode === 'daily') payBadgeHtml = `<span style="${badgeStyle}" class="text-white pay-daily">จ่ายรายวัน</span>`; 
-                else if (active.paymentMode === 'partial') payBadgeHtml = `<span style="${badgeStyle}" class="text-white pay-partial">จ่ายวันสุดท้าย</span>`; 
-                else if (active.paymentMode === 'none') payBadgeHtml = `<span style="${badgeStyle}" class="text-white pay-none">ยังไม่จ่าย</span>`; 
+                let badgeStyle = `font-size: 0.65rem; padding: 2px 10px; border-radius: 12px; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1.5px solid white; display: inline-block; margin-top: 4px;`;
+                
+                if (active.paymentMode === 'all') payBadgeHtml = `<span style="${badgeStyle}; background-color: #20c997;" class="text-white">จ่ายเงินแล้ว</span>`; 
+                else if (active.paymentMode === 'daily') payBadgeHtml = `<span style="${badgeStyle}; background-color: #fd7e14;" class="text-white">จ่ายรายวัน</span>`; 
+                else if (active.paymentMode === 'partial') payBadgeHtml = `<span style="${badgeStyle}; background-color: #e83e8c;" class="text-white">จ่ายวันสุดท้าย</span>`; 
+                else if (active.paymentMode === 'none') payBadgeHtml = `<span style="${badgeStyle}; background-color: #495057;" class="text-white">ยังไม่จ่าย</span>`; 
             }
 
             return `
                 <div class="col-6 col-md-3 col-lg-2 room-card-wrapper" data-room="${roomNum}">
-                    <div class="room-card ${statusClass} p-3 text-center shadow-sm" onclick="openRoom('${roomNum}')">
+                    <div class="room-card ${statusClass} p-2 text-center shadow-sm" onclick="openRoom('${roomNum}')">
                         ${twinBadgeHtml}
                         ${topRightBadges}
                         <h4 class="fw-bold mb-0 mt-2">${roomNum}</h4>
-                        <i class="bi ${icon} fs-1 opacity-75 mb-1 mt-1"></i>
-                        <div class="small fw-bold text-truncate w-100 px-2" style="margin-bottom: 20px;">${displayName}</div>
+                        <i class="bi ${icon} fs-2 opacity-75 my-1"></i>
+                        <div class="small fw-bold text-truncate w-100 px-1 mb-1">${displayName}</div>
                         ${payBadgeHtml}
                     </div>
                 </div>
@@ -815,7 +818,6 @@
             roomModalObj.show();
         }
 
-        // --- แก้ไขข้อมูลบั๊กฟรี 100% ---
         function editBooking(bookingId) {
             const booking = roomsData[currentRoom].find(b => b.id === bookingId);
             if(!booking) return;
@@ -840,7 +842,7 @@
             document.getElementById('cin').removeAttribute('max');
             document.getElementById('cin').removeAttribute('min'); 
             
-            calcFormPrice(); // บังคับให้คำนวณและแสดงยอดทันที
+            calcFormPrice(); // ให้ระบบคำนวณเงินทันทีตอนแก้
             
             document.getElementById('bookingFormSection').scrollIntoView({ behavior: 'smooth' });
         }
@@ -1002,7 +1004,7 @@
             document.getElementById('stat-shift2').innerText = `฿${(todayIncome.shift2?todayIncome.shift2.total:0).toLocaleString()}`;
         }
 
-        // --- แก้ไขบั๊กปุ่ม สรุปรายได้ (หน้าต่างรายงาน) 100% ---
+        // --- แก้ไขบั๊กปุ่ม สรุปรายได้ 100% ---
         function openSummaryModal() {
             renderDailySummary();
             summaryModalObj.show();
@@ -1045,7 +1047,7 @@
                 </div>
             `;
 
-            // ใช้การแทรกเนื้อหาทีละ Tab เพื่อไม่ให้โครงสร้าง Bootstrap พัง
+            // ยัด HTML ใส่ Tab ตรงๆ เพื่อความเสถียร
             document.getElementById('sum-total').innerHTML = renderPane(dData, `รวมทั้งหมดประจำวัน (${formatThaiDate(dateVal)})`, 'text-primary', 'bi-wallet2');
             document.getElementById('sum-shift1').innerHTML = renderPane(s1, `กะกลางวัน (06.30 - 16.29)`, 'text-info', 'bi-sun-fill');
             document.getElementById('sum-shift2').innerHTML = renderPane(s2, `กะกลางคืน (16.30 - 06.29)`, 'text-warning', 'bi-moon-fill');
