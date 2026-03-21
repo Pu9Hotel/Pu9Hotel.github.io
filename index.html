@@ -3,29 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hotel System PRO - Colorful</title>
+    <title>Hotel System PRO - Colorful & Smart</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root { 
-            /* กลับมาใช้สีสันสดใส ดูง่าย ตัดกันชัดเจน */
-            --primary: #0d6efd; 
-            --primary-dark: #0a58ca; 
-            --success: #198754; 
-            --danger: #dc3545; 
-            --warning: #ffc107; 
-            --info: #0dcaf0; 
-            --twin: #d63384; 
-            --bg-main: #f4f6f9;
-            --card-bg: #ffffff;
+            --primary: #0d6efd; --primary-dark: #0a58ca; 
+            --success: #198754; --danger: #dc3545; 
+            --warning: #ffc107; --info: #0dcaf0; 
+            --twin: #d63384; --bg-main: #f4f6f9; --card-bg: #ffffff;
         }
         body { background: var(--bg-main); font-family: 'Prompt', sans-serif; color: #212529; }
         
-        .header { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: white; padding: 25px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        
+        .header { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: white; padding: 25px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 2rem;}
         .stat-card { border-radius: 12px; border: none; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .content-card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 2rem;}
         
@@ -39,35 +31,12 @@
         
         .status-available { background-color: var(--success); }
         .status-occupied { background-color: var(--danger); }
-        
-        .has-future::after {
-            content: "มีคิวจอง"; position: absolute; top: 10px; right: 10px;
-            background: var(--warning); color: #000; font-size: 0.65rem;
-            padding: 4px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .twin-badge {
-            position: absolute; top: 10px; left: 10px;
-            background: var(--twin); color: white; font-size: 0.65rem;
-            padding: 4px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        /* ป้ายสถานะการจ่ายเงิน (ย้ายมาขวาล่างแทนป้าย 1 วัน) */
-        .pay-badge {
-            position: absolute; bottom: 10px; right: 10px;
-            font-size: 0.65rem; padding: 4px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3); color: white;
-        }
-        .pay-all { background-color: var(--success); }
-        .pay-daily { background-color: var(--warning); color: #000; }
-        .pay-partial { background-color: var(--danger); }
-        .pay-none { background-color: #343a40; } /* สีเทาดำ */
 
         .table-timeline-container { overflow-x: auto; background: white; border-radius: 12px; }
         .timeline-table th, .timeline-table td { min-width: 45px; text-align: center; vertical-align: middle; padding: 8px 4px; border: 1px solid #dee2e6; font-size: 0.85rem;}
         .timeline-table th { background-color: #f8f9fa; color: #495057; font-weight: 500;}
         .sticky-col { position: sticky; left: 0; background: #ffffff !important; z-index: 2; border-right: 2px solid #dee2e6 !important; font-weight: 600; width: 90px;}
         
-        /* แยกสีปฏิทิน แดง=เข้าพัก / เหลือง=จองล่วงหน้า */
         .cell-occupied { background-color: var(--danger) !important; color: white; border-radius: 6px; box-shadow: inset 0 0 0 2px white;}
         .cell-reserved { background-color: var(--warning) !important; color: black; border-radius: 6px; box-shadow: inset 0 0 0 2px white;}
         .cell-today-col { background-color: #fff3cd; }
@@ -89,7 +58,7 @@
 
     <div class="header text-center">
         <h2 class="fw-bold mb-1"><i class="bi bi-buildings-fill me-2"></i> HOTEL SYSTEM PRO</h2>
-        <p class="mb-0 opacity-75 text-light">ระบบบริหารจัดการห้องพักและบัญชีรายวัน (กะกลางวัน & กะกลางคืน)</p>
+        <p class="mb-0 opacity-75 text-light">ระบบบริหารจัดการห้องพัก (กะกลางวัน & กะกลางคืน)</p>
     </div>
 
     <div class="sticky-controls">
@@ -98,20 +67,10 @@
                 
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     <ul class="nav nav-pills bg-white p-1 rounded-pill shadow-sm d-inline-flex m-0" id="pills-tab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active fw-bold rounded-pill px-3" data-bs-toggle="pill" data-bs-target="#view-grid">
-                                <i class="bi bi-grid-fill"></i> แผนผังห้อง
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link fw-bold rounded-pill px-3" data-bs-toggle="pill" data-bs-target="#view-calendar">
-                                <i class="bi bi-calendar3"></i> ปฏิทินจอง
-                            </button>
-                        </li>
+                        <li class="nav-item" role="presentation"><button class="nav-link active fw-bold rounded-pill px-3" data-bs-toggle="pill" data-bs-target="#view-grid"><i class="bi bi-grid-fill"></i> แผนผังห้อง</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link fw-bold rounded-pill px-3" data-bs-toggle="pill" data-bs-target="#view-calendar"><i class="bi bi-calendar3"></i> ปฏิทินจอง</button></li>
                     </ul>
-
                     <div class="vr mx-1 bg-secondary opacity-25 d-none d-md-block" style="width: 2px; height: 30px;"></div>
-
                     <ul class="nav nav-pills bg-white p-1 rounded-pill shadow-sm d-inline-flex m-0">
                         <li class="nav-item"><button class="nav-link filter-btn active fw-bold rounded-pill px-3" onclick="setStatusFilter('all', this)">ทั้งหมด</button></li>
                         <li class="nav-item"><button class="nav-link filter-btn fw-bold rounded-pill px-3 text-success" onclick="setStatusFilter('available', this)">ว่าง</button></li>
@@ -124,24 +83,13 @@
                         <span class="input-group-text bg-white border-0"><i class="bi bi-search text-muted"></i></span>
                         <input type="text" id="searchInput" class="form-control border-0 bg-white" placeholder="ค้นหาชื่อ, เบอร์..." onkeyup="filterRooms()">
                     </div>
-                    
-                    <button class="btn btn-info btn-sm shadow-sm rounded-pill px-3 text-dark fw-bold" onclick="openSummaryModal()">
-                        <i class="bi bi-wallet2"></i> สรุปรายได้
-                    </button>
-                    
+                    <button class="btn btn-warning btn-sm shadow-sm rounded-pill px-3 text-dark fw-bold" onclick="openSummaryModal()"><i class="bi bi-wallet2"></i> สรุปรายได้</button>
                     <div class="dropdown">
-                        <button class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-hdd-stack-fill"></i> ข้อมูล
-                        </button>
+                        <button class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown"><i class="bi bi-hdd-stack-fill"></i> ข้อมูล</button>
                         <ul class="dropdown-menu shadow border-0 rounded-3">
                             <li><a class="dropdown-item fw-bold text-primary" href="#" onclick="exportData()"><i class="bi bi-cloud-download me-2"></i> สำรองข้อมูล (Backup)</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <label class="dropdown-item fw-bold text-success mb-0" style="cursor: pointer;">
-                                    <i class="bi bi-cloud-upload me-2"></i> กู้คืนข้อมูล (Restore)
-                                    <input type="file" id="importFile" accept=".json" class="d-none" onchange="importData(event)">
-                                </label>
-                            </li>
+                            <li><label class="dropdown-item fw-bold text-success mb-0" style="cursor: pointer;"><i class="bi bi-cloud-upload me-2"></i> กู้คืนข้อมูล (Restore)<input type="file" id="importFile" accept=".json" class="d-none" onchange="importData(event)"></label></li>
                         </ul>
                     </div>
                 </div>
@@ -214,20 +162,27 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content shadow border-0 rounded-4">
                 <div class="modal-header bg-light border-0 rounded-top-4 p-4 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-wallet2"></i> สรุปรายได้และสถิติรายวัน (แยกกะ & ช่องทาง)</h5>
+                    <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-wallet2"></i> สรุปรายละเอียดรอบบัญชี (Daily Report)</h5>
                     <button type="button" class="btn-close m-0" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2 border-bottom pb-3">
+                <div class="modal-body p-4 bg-light">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2 border-bottom pb-3 border-secondary">
                         <div class="d-flex align-items-center">
                             <label class="fw-bold me-2">เลือกวันที่รอบบัญชี:</label>
                             <input type="date" id="summaryDatePicker" class="form-control w-auto shadow-sm text-primary fw-bold" onchange="renderDailySummary()">
                         </div>
                         <button class="btn btn-success fw-bold rounded-pill px-4 shadow-sm" onclick="exportIncomeToExcel()">
-                            <i class="bi bi-file-earmark-excel-fill"></i> ดาวน์โหลด Excel
+                            <i class="bi bi-file-earmark-excel-fill"></i> โหลด Excel
                         </button>
                     </div>
-                    <div id="summaryContent" class="row g-3"></div>
+                    
+                    <ul class="nav nav-pills justify-content-center mb-4 gap-2" id="summaryTabs" role="tablist">
+                        <li class="nav-item"><button class="nav-link active fw-bold rounded-pill px-4 shadow-sm" data-bs-toggle="pill" data-bs-target="#sum-total">รวมทั้งวัน</button></li>
+                        <li class="nav-item"><button class="nav-link fw-bold rounded-pill px-4 shadow-sm text-info" data-bs-toggle="pill" data-bs-target="#sum-shift1"><i class="bi bi-sun-fill"></i> กะกลางวัน</button></li>
+                        <li class="nav-item"><button class="nav-link fw-bold rounded-pill px-4 shadow-sm text-warning" data-bs-toggle="pill" data-bs-target="#sum-shift2"><i class="bi bi-moon-fill"></i> กะกลางคืน</button></li>
+                    </ul>
+
+                    <div class="tab-content" id="summaryTabsContent"></div>
                 </div>
             </div>
         </div>
@@ -366,7 +321,7 @@
                                     
                                     <div class="col-md-6">
                                         <div class="p-3 border rounded-3 h-100" id="payMoreSection">
-                                            <h6 class="fw-bold text-primary mb-3"><i class="bi bi-cash-stack"></i> รับชำระเงินเพิ่ม (รายวัน/ค้างจ่าย)</h6>
+                                            <h6 class="fw-bold text-primary mb-3"><i class="bi bi-cash-stack"></i> รับชำระเงินรายวัน</h6>
                                             <label class="small text-muted">จำนวนเงิน (บาท)</label>
                                             <input type="number" id="additionalPayAmount" class="form-control mb-2" placeholder="ระบุยอดเงิน">
                                             
@@ -379,7 +334,7 @@
                                             <button class="btn btn-success w-100 fw-bold shadow-sm rounded-pill" onclick="receiveAdditionalPayment()">บันทึกรับเงินเข้าระบบ</button>
                                         </div>
                                         <div class="p-3 border rounded-3 h-100 bg-light d-flex align-items-center justify-content-center text-center d-none" id="partialMsgSection">
-                                            <p class="text-muted small mb-0"><i class="bi bi-info-circle text-danger"></i> ลูกค้ารายนี้เลือก "จ่ายบางส่วน"<br>กรุณาเก็บยอดค้างชำระทีเดียวในวัน Check-out</p>
+                                            <p class="text-muted small mb-0" id="partialMsgText"></p>
                                         </div>
                                     </div>
                                 </div>
@@ -410,10 +365,18 @@
         
         for(let key in incomeData) {
             if(typeof incomeData[key] === 'number') {
-                incomeData[key] = { shift1: incomeData[key], shift2: 0, total: incomeData[key], cash: incomeData[key], qr: 0, checkins: 0, checkouts: 0, newBooks: 0 };
-            } else if(incomeData[key].cash === undefined) {
-                incomeData[key].cash = incomeData[key].total || 0;
-                incomeData[key].qr = 0;
+                incomeData[key] = {
+                    shift1: { total: incomeData[key], cash: incomeData[key], qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 },
+                    shift2: { total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 },
+                    total: incomeData[key], cash: incomeData[key], qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0
+                };
+            } else if (!incomeData[key].shift1) {
+                let old = incomeData[key];
+                incomeData[key] = {
+                    shift1: { total: old.shift1||0, cash: old.shift1||0, qr: 0, checkins: old.shift1_chk||0, checkouts: old.shift1_out||0, newBooks: old.newBooks||0, depositTotal: 0 },
+                    shift2: { total: old.shift2||0, cash: old.shift2||0, qr: 0, checkins: old.shift2_chk||0, checkouts: old.shift2_out||0, newBooks: 0, depositTotal: 0 },
+                    total: old.total||0, cash: old.cash||old.total||0, qr: old.qr||0, checkins: (old.shift1_chk||0)+(old.shift2_chk||0), checkouts: (old.shift1_out||0)+(old.shift2_out||0), newBooks: old.newBooks||0, depositTotal: 0
+                };
             }
         }
         
@@ -429,7 +392,8 @@
         function formatThaiDate(dateStr) {
             if(!dateStr) return '-';
             const d = new Date(dateStr);
-            return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+            const months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+            return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
         }
 
         function getTodayStr(dateObj = new Date()) {
@@ -452,37 +416,29 @@
 
         function recordDailyEvent(type, amount = 0, payMethod = 'cash') {
             const { dateStr, shift } = getAccountingShift();
+            const sKey = shift === 1 ? 'shift1' : 'shift2';
             
-            if(!incomeData[dateStr]) {
-                incomeData[dateStr] = { shift1: 0, shift2: 0, total: 0, cash: 0, qr: 0, shift1_chk: 0, shift2_chk: 0, shift1_out: 0, shift2_out: 0, newBooks: 0 };
+            if(!incomeData[dateStr] || !incomeData[dateStr].shift1) {
+                incomeData[dateStr] = {
+                    shift1: { total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 },
+                    shift2: { total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 },
+                    total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0
+                };
             }
 
-            if(type === 'checkin') {
-                if(shift === 1) incomeData[dateStr].shift1_chk = (incomeData[dateStr].shift1_chk || 0) + 1;
-                else incomeData[dateStr].shift2_chk = (incomeData[dateStr].shift2_chk || 0) + 1;
-                if(amount > 0) addIncomeToShift(dateStr, shift, amount, payMethod);
-            } 
-            else if(type === 'checkout') {
-                if(shift === 1) incomeData[dateStr].shift1_out = (incomeData[dateStr].shift1_out || 0) + 1;
-                else incomeData[dateStr].shift2_out = (incomeData[dateStr].shift2_out || 0) + 1;
-                if(amount > 0) addIncomeToShift(dateStr, shift, amount, payMethod);
-            } 
-            else if(type === 'reserve') {
-                incomeData[dateStr].newBooks = (incomeData[dateStr].newBooks || 0) + 1;
-                if(amount > 0) addIncomeToShift(dateStr, shift, amount, payMethod);
-            } 
-            else if(type === 'payment_only' || type === 'cancel_refund') {
-                if(amount !== 0) addIncomeToShift(dateStr, shift, amount, payMethod);
+            let d = incomeData[dateStr]; let s = d[sKey];
+
+            if(type === 'checkin') { s.checkins++; d.checkins++; } 
+            else if(type === 'checkout') { s.checkouts++; d.checkouts++; } 
+            else if(type === 'reserve') { s.newBooks++; d.newBooks++; if(amount > 0) { s.depositTotal += amount; d.depositTotal += amount; } } 
+            else if(type === 'cancel_refund') { if(amount > 0) { s.depositTotal -= amount; d.depositTotal -= amount; } }
+
+            let actAmt = (type === 'cancel_refund') ? -amount : amount;
+            if(actAmt !== 0) {
+                s.total += actAmt; d.total += actAmt;
+                if(payMethod === 'qr') { s.qr += actAmt; d.qr += actAmt; }
+                else { s.cash += actAmt; d.cash += actAmt; }
             }
-        }
-
-        function addIncomeToShift(dateStr, shift, amount, payMethod) {
-            if(shift === 1) incomeData[dateStr].shift1 += amount;
-            else incomeData[dateStr].shift2 += amount;
-            incomeData[dateStr].total += amount;
-
-            if(payMethod === 'qr') incomeData[dateStr].qr += amount;
-            else incomeData[dateStr].cash += amount;
         }
 
         function init() {
@@ -545,7 +501,6 @@
         function createRoomCardHtml(roomNum) {
             const bookings = roomsData[roomNum] || [];
             const today = getTodayStr();
-
             const active = bookings.find(b => b.cin <= today && b.cout > today);
             const hasFuture = bookings.some(b => b.cin > today);
 
@@ -553,25 +508,28 @@
             let displayName = active ? active.name : 'ว่างพร้อมใช้';
             let icon = active ? 'bi-door-closed-fill' : 'bi-door-open-fill';
             
-            const futureClass = hasFuture ? 'has-future' : '';
             const twinBadgeHtml = twinBeds.includes(roomNum) ? `<span class="twin-badge"><i class="bi bi-people-fill"></i> เตียงคู่</span>` : '';
             
             let payBadgeHtml = '';
             if (active && active.paymentMode) {
-                if (active.paymentMode === 'all') payBadgeHtml = `<span class="pay-badge pay-all">จ่ายเงินแล้ว</span>`;
-                else if (active.paymentMode === 'daily') payBadgeHtml = `<span class="pay-badge pay-daily">จ่ายรายวัน</span>`;
-                else if (active.paymentMode === 'partial') payBadgeHtml = `<span class="pay-badge pay-partial">จ่ายวันสุดท้าย</span>`;
-                else if (active.paymentMode === 'none') payBadgeHtml = `<span class="pay-badge pay-none">ไม่จ่าย</span>`;
+                const badgeStyle = `position: absolute; top: 10px; right: 10px; font-size: 0.65rem; padding: 4px 8px; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3); border: 2px solid white; z-index: 5;`;
+                if (active.paymentMode === 'all') payBadgeHtml = `<span style="${badgeStyle}" class="text-white bg-success">จ่ายเงินแล้ว</span>`;
+                else if (active.paymentMode === 'daily') payBadgeHtml = `<span style="${badgeStyle}" class="text-dark bg-warning">จ่ายรายวัน</span>`;
+                else if (active.paymentMode === 'partial') payBadgeHtml = `<span style="${badgeStyle}" class="text-white bg-danger">จ่ายวันสุดท้าย</span>`;
+                else if (active.paymentMode === 'none') payBadgeHtml = `<span style="${badgeStyle}" class="text-white bg-dark">ไม่จ่าย</span>`;
             }
+            
+            const futureClassHtml = hasFuture ? `<span class="badge bg-warning text-dark position-absolute bottom-0 end-0 mb-2 me-2 shadow-sm" style="font-size: 0.65rem;">มีคิวจอง</span>` : '';
 
             return `
                 <div class="col-6 col-md-3 col-lg-2 room-card-wrapper" data-room="${roomNum}">
-                    <div class="room-card ${statusClass} ${futureClass} p-3 text-center shadow-sm" onclick="openRoom('${roomNum}')">
+                    <div class="room-card ${statusClass} p-3 text-center shadow-sm" onclick="openRoom('${roomNum}')">
                         ${twinBadgeHtml}
-                        <h4 class="fw-bold mb-1 mt-2">${roomNum}</h4>
+                        ${payBadgeHtml}
+                        <h4 class="fw-bold mb-1 mt-3">${roomNum}</h4>
                         <i class="bi ${icon} fs-1 opacity-75 mb-2"></i>
                         <div class="small fw-bold text-truncate w-100 px-2">${displayName}</div>
-                        ${payBadgeHtml}
+                        ${futureClassHtml}
                     </div>
                 </div>
             `;
@@ -610,14 +568,10 @@
                     const dateCheck = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                     const isTodayCol = (dateCheck === todayStr) ? 'cell-today-col' : '';
                     
-                    // หากำหนดการที่คลุมวันนี้อยู่
                     const booking = (roomsData[room]||[]).find(b => dateCheck >= b.cin && dateCheck < b.cout);
                     
                     if(booking) {
-                        // แยกสี: ถ้าวันที่เช็ค >= วันนี้ ถือว่าจองในอนาคต (หรือยังไม่เข้าพัก) ให้เป็นสีเหลือง, ถ้ากำลังพักให้เป็นสีแดง
-                        // เราดูจาก cin ว่าเลยวันนี้ไปหรือยัง
-                        const isFuture = booking.cin > todayStr;
-                        const cellClass = isFuture ? 'cell-reserved' : 'cell-occupied';
+                        const cellClass = (booking.cin > todayStr) ? 'cell-reserved' : 'cell-occupied';
                         html += `<td class="${cellClass}" title="${booking.name} (${formatThaiDate(booking.cin)} ถึง ${formatThaiDate(booking.cout)})"></td>`;
                     } else {
                         html += `<td class="${isTodayCol}"></td>`;
@@ -694,9 +648,9 @@
             let twinLabel = twinBeds.includes(roomNum) ? ' <span class="badge bg-pink" style="background-color: var(--twin); font-size:0.8rem;">เตียงคู่</span>' : '';
             document.getElementById('modalTitle').innerHTML = `<i class="bi bi-door-open"></i> จัดการห้อง ${roomNum}${twinLabel}`;
             
-            const today = getTodayStr();
+            const todayStr = getTodayStr();
             const bookings = roomsData[roomNum] || [];
-            const active = bookings.find(b => b.cin <= today && b.cout > today);
+            const active = bookings.find(b => b.cin <= todayStr && b.cout > todayStr);
             
             const tabInfoBtn = new bootstrap.Tab(document.getElementById('tab-info-btn'));
             const tabPayBtn = new bootstrap.Tab(document.getElementById('tab-pay-btn'));
@@ -709,7 +663,6 @@
                 document.getElementById('active-phone').innerText = active.phone || '-';
                 document.getElementById('active-idcard').innerText = active.idCard || '-';
                 document.getElementById('active-dates').innerText = `${formatThaiDate(active.cin)} ➡️ ${formatThaiDate(active.cout)}`;
-                
                 document.getElementById('active-total').innerText = `฿${active.total.toLocaleString()}`;
                 
                 const paidVal = active.paidAmount || 0;
@@ -719,34 +672,45 @@
                 
                 const payMoreSec = document.getElementById('payMoreSection');
                 const partialMsgSec = document.getElementById('partialMsgSection');
+                const checkoutPayBox = document.getElementById('checkoutPayBox');
+                const btnCheckout = document.getElementById('btnCheckout');
                 
-                // ถ้ายอดเหลือ 0 ซ่อนทุกอย่างของจ่ายเพิ่ม
                 if(remain === 0) {
                     payMoreSec.style.display = 'none';
                     partialMsgSec.classList.add('d-none');
-                    document.getElementById('checkoutPayBox').style.display = 'none';
-                    document.getElementById('btnCheckout').innerText = "Check-out (ชำระครบแล้ว)";
-                    document.getElementById('btnCheckout').classList.replace('btn-danger', 'btn-success');
+                    checkoutPayBox.style.display = 'none';
+                    btnCheckout.innerText = "Check-out (ชำระครบแล้ว)";
+                    btnCheckout.classList.replace('btn-danger', 'btn-success');
                 } else {
-                    document.getElementById('checkoutPayBox').style.display = 'block';
-                    document.getElementById('btnCheckout').innerText = `รับชำระส่วนที่เหลือและ Check-out`;
-                    document.getElementById('btnCheckout').classList.replace('btn-success', 'btn-danger');
+                    checkoutPayBox.style.display = 'block';
+                    btnCheckout.innerText = `รับชำระส่วนที่เหลือและ Check-out`;
+                    btnCheckout.classList.replace('btn-success', 'btn-danger');
                     
-                    // ถ้าเลือกจ่ายบางส่วนมา (จ่ายก้อนเดียวจบวันสุดท้าย) ห้ามจ่ายเพิ่มระหว่างวัน
                     if(active.paymentMode === 'partial') {
                         payMoreSec.style.display = 'none';
+                        partialMsgSec.innerHTML = `<p class="text-danger small fw-bold mb-0"><i class="bi bi-info-circle"></i> ลูกค้าจ่ายบางส่วน<br>กรุณาเก็บยอดค้างชำระในวัน Check-out</p>`;
                         partialMsgSec.classList.remove('d-none');
+                    } else if (active.paymentMode === 'daily') {
+                        let cinDate = new Date(active.cin); cinDate.setHours(0,0,0,0);
+                        let todayDate = new Date(todayStr); todayDate.setHours(0,0,0,0);
+                        let daysStayed = Math.round((todayDate - cinDate) / 86400000) + 1; 
+                        let totalNights = Math.ceil((new Date(active.cout) - new Date(active.cin)) / 86400000) || 1;
+                        let pricePerNight = active.total / totalNights;
+                        let expectedPaid = pricePerNight * daysStayed;
+                        
+                        if(active.paidAmount >= expectedPaid) {
+                            payMoreSec.style.display = 'none';
+                            partialMsgSec.innerHTML = `<p class="text-success small fw-bold mb-0"><i class="bi bi-check-circle-fill"></i> ชำระเงินของวันนี้เรียบร้อยแล้ว<br>สามารถรับชำระได้อีกครั้งในวันพรุ่งนี้</p>`;
+                            partialMsgSec.classList.remove('d-none');
+                        } else {
+                            payMoreSec.style.display = 'block';
+                            partialMsgSec.classList.add('d-none');
+                            document.getElementById('additionalPayAmount').value = pricePerNight;
+                        }
                     } else {
                         payMoreSec.style.display = 'block';
                         partialMsgSec.classList.add('d-none');
-                        // เสนอยอดจ่าย 1 คืนก่อน
-                        let suggestedPay = 0;
-                        if(active.cin && active.cout) {
-                            let nn = Math.ceil((new Date(active.cout) - new Date(active.cin)) / 86400000);
-                            suggestedPay = active.total / (nn || 1);
-                        }
-                        if(suggestedPay > remain) suggestedPay = remain;
-                        document.getElementById('additionalPayAmount').value = suggestedPay;
+                        document.getElementById('additionalPayAmount').value = remain;
                     }
                 }
 
@@ -760,7 +724,7 @@
                 tabInfoBtn.show(); 
             }
 
-            const futures = bookings.filter(b => b.cin > today);
+            const futures = bookings.filter(b => b.cin > todayStr);
             const listDiv = document.getElementById('futureList');
             if(futures.length === 0) {
                 listDiv.innerHTML = '<div class="text-center text-muted small py-3"><i class="bi bi-inbox fs-3 d-block mb-1 opacity-50"></i>ไม่มีคิวจองล่วงหน้า</div>';
@@ -796,7 +760,6 @@
             roomModalObj.show();
         }
 
-        // --- แก้ไขข้อมูล (ทำงานได้ชัวร์ 100%) ---
         function editBooking(bookingId) {
             const booking = roomsData[currentRoom].find(b => b.id === bookingId);
             if(!booking) return;
@@ -872,7 +835,7 @@
                 if(b.paidAmount > total) {
                     const refundAmt = b.paidAmount - total;
                     if(!confirm(`ยอดรวมใหม่ (฿${total.toLocaleString()}) น้อยกว่าเงินที่ลูกค้าจ่ายมาแล้ว (฿${b.paidAmount.toLocaleString()})\n\nระบบจะหักรายได้ออก ฿${refundAmt.toLocaleString()} เพื่อคืนลูกค้า\nยืนยันการบันทึก?`)) return;
-                    recordDailyEvent('cancel_refund', -refundAmt, 'cash'); 
+                    recordDailyEvent('cancel_refund', refundAmt, 'cash'); 
                     b.paidAmount = total; 
                 }
                 
@@ -897,7 +860,6 @@
             save(); refreshAll(); roomModalObj.hide();
         }
 
-        // รับเงินรายวัน (ไม่มีการทอนเงินแล้ว)
         function receiveAdditionalPayment() {
             const amount = parseInt(document.getElementById('additionalPayAmount').value);
             const payMethod = document.getElementById('additionalPayMethod').value;
@@ -945,7 +907,7 @@
 
             if((b.paidAmount || 0) > 0) {
                 if(confirm(`รายการนี้จ่ายมาแล้ว ฿${b.paidAmount.toLocaleString()}\n\n- กด OK เพื่อ "คืนเงินลูกค้า" (ระบบจะหักรายได้ออก)\n- กด Cancel เพื่อ "ยึดเงิน" (ไม่หักรายได้)`)) {
-                    recordDailyEvent('cancel_refund', -b.paidAmount, 'cash');
+                    recordDailyEvent('cancel_refund', b.paidAmount, 'cash'); 
                     alert(`✅ หักรายได้ออก ฿${b.paidAmount.toLocaleString()} เรียบร้อยแล้ว`);
                 } else {
                     alert("📌 ลบคิวแล้ว และยังคงเก็บยอดเงินไว้ในระบบ");
@@ -970,11 +932,11 @@
             document.getElementById('stat-occ').innerText = `ใช้ห้องแล้ว: ${occRate}%`;
 
             const { dateStr } = getAccountingShift();
-            const todayIncome = incomeData[dateStr] || { shift1: 0, shift2: 0, total: 0 };
+            const todayIncome = incomeData[dateStr] || { shift1: {total:0}, shift2: {total:0}, total: 0 };
             
             document.getElementById('stat-income').innerText = `฿${todayIncome.total.toLocaleString()}`;
-            document.getElementById('stat-shift1').innerText = `฿${todayIncome.shift1.toLocaleString()}`;
-            document.getElementById('stat-shift2').innerText = `฿${todayIncome.shift2.toLocaleString()}`;
+            document.getElementById('stat-shift1').innerText = `฿${(todayIncome.shift1?todayIncome.shift1.total:0).toLocaleString()}`;
+            document.getElementById('stat-shift2').innerText = `฿${(todayIncome.shift2?todayIncome.shift2.total:0).toLocaleString()}`;
         }
 
         function openSummaryModal() {
@@ -986,38 +948,37 @@
             const dateVal = document.getElementById('summaryDatePicker').value; 
             if(!dateVal) return;
 
-            const dData = incomeData[dateVal] || { shift1: 0, shift2: 0, total: 0, cash:0, qr:0, shift1_chk:0, shift2_chk:0, shift1_out:0, shift2_out:0, newBooks: 0 };
+            const dData = incomeData[dateVal] || { 
+                shift1: { total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 },
+                shift2: { total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 },
+                total: 0, cash: 0, qr: 0, checkins: 0, checkouts: 0, newBooks: 0, depositTotal: 0 
+            };
             
-            document.getElementById('summaryContent').innerHTML = `
-                <div class="col-md-12">
-                    <div class="p-4 border border-primary border-2 rounded-4 bg-light text-center shadow-sm">
-                        <h6 class="fw-bold text-secondary mb-2">ยอดรับเงินทั้งหมดประจำวัน ( ${formatThaiDate(dateVal)} )</h6>
-                        <h1 class="text-primary fw-bold mb-3">฿${dData.total.toLocaleString()}</h1>
-                        
-                        <div class="d-flex justify-content-center gap-4 border-top pt-3 mt-3 mx-4">
-                            <span class="text-success fw-bold"><i class="bi bi-cash-coin me-1"></i> เงินสด: ฿${(dData.cash||0).toLocaleString()}</span>
-                            <span class="text-primary fw-bold"><i class="bi bi-qr-code-scan me-1"></i> QR Code: ฿${(dData.qr||0).toLocaleString()}</span>
+            const renderPane = (data, title, colorClass, iconClass) => `
+                <div class="p-4 border rounded-4 bg-white shadow-sm mt-3">
+                    <h5 class="fw-bold ${colorClass} mb-3 text-center border-bottom pb-3"><i class="bi ${iconClass}"></i> ${title}</h5>
+                    <div class="row g-4">
+                        <div class="col-md-6 border-end-md">
+                            <h6 class="text-muted small fw-bold">ยอดเงินรายได้</h6>
+                            <h2 class="${colorClass} fw-bold mb-3">฿${data.total.toLocaleString()}</h2>
+                            <div class="d-flex justify-content-between mb-1"><span>เงินสด:</span> <span class="fw-bold">฿${data.cash.toLocaleString()}</span></div>
+                            <div class="d-flex justify-content-between"><span>โอน/QR:</span> <span class="fw-bold text-primary">฿${data.qr.toLocaleString()}</span></div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted small fw-bold">สถิติห้องพัก</h6>
+                            <div class="d-flex justify-content-between mb-2"><span>เช็คอินเข้าพัก:</span> <span class="fw-bold">${data.checkins} ห้อง</span></div>
+                            <div class="d-flex justify-content-between mb-2"><span>ส่งเช็คเอาท์:</span> <span class="fw-bold text-danger">${data.checkouts} ห้อง</span></div>
+                            <div class="d-flex justify-content-between mb-2"><span>จองห้องเพิ่ม:</span> <span class="fw-bold text-warning">${data.newBooks} ห้อง</span></div>
+                            <div class="d-flex justify-content-between"><span>รับเงินมัดจำมา:</span> <span class="fw-bold text-success">฿${data.depositTotal.toLocaleString()}</span></div>
                         </div>
                     </div>
                 </div>
+            `;
 
-                <div class="col-md-6 mt-3">
-                    <div class="p-3 border rounded-4 bg-white shadow-sm h-100 border-top border-info border-4">
-                        <h5 class="fw-bold text-info mb-3"><i class="bi bi-sun-fill"></i> กะกลางวัน (06.30 - 16.30)</h5>
-                        <h3 class="text-dark fw-bold mb-3 border-bottom pb-2">฿${dData.shift1.toLocaleString()}</h3>
-                        <div class="d-flex justify-content-between mb-1"><span>รับ Check-in:</span> <span class="fw-bold">${dData.shift1_chk || 0} ห้อง</span></div>
-                        <div class="d-flex justify-content-between"><span>ส่ง Check-out:</span> <span class="fw-bold text-danger">${dData.shift1_out || 0} ห้อง</span></div>
-                    </div>
-                </div>
-
-                <div class="col-md-6 mt-3">
-                    <div class="p-3 border rounded-4 bg-white shadow-sm h-100 border-top border-warning border-4">
-                        <h5 class="fw-bold text-warning mb-3"><i class="bi bi-moon-fill"></i> กะกลางคืน (16.30 - 06.30)</h5>
-                        <h3 class="text-dark fw-bold mb-3 border-bottom pb-2">฿${dData.shift2.toLocaleString()}</h3>
-                        <div class="d-flex justify-content-between mb-1"><span>รับ Check-in:</span> <span class="fw-bold">${dData.shift2_chk || 0} ห้อง</span></div>
-                        <div class="d-flex justify-content-between"><span>ส่ง Check-out:</span> <span class="fw-bold text-danger">${dData.shift2_out || 0} ห้อง</span></div>
-                    </div>
-                </div>
+            document.getElementById('summaryTabsContent').innerHTML = `
+                <div class="tab-pane fade show active" id="sum-total">${renderPane(dData, `รวมทั้งหมดประจำวัน (${formatThaiDate(dateVal)})`, 'text-primary', 'bi-wallet2')}</div>
+                <div class="tab-pane fade" id="sum-shift1">${renderPane(dData.shift1, `กะกลางวัน (06.30 - 16.29)`, 'text-info', 'bi-sun-fill')}</div>
+                <div class="tab-pane fade" id="sum-shift2">${renderPane(dData.shift2, `กะกลางคืน (16.30 - 06.29)`, 'text-warning', 'bi-moon-fill')}</div>
             `;
         }
 
@@ -1026,11 +987,13 @@
             if (dates.length === 0) return alert("ยังไม่มีข้อมูลให้บันทึกครับ");
 
             let csvContent = "\uFEFF"; 
-            csvContent += "วันที่ (รอบบัญชี),รับเช็คอิน (กะกลางวัน),ส่งเช็คเอาท์ (กะกลางวัน),รายได้ (กะกลางวัน),รับเช็คอิน (กะกลางคืน),ส่งเช็คเอาท์ (กะกลางคืน),รายได้ (กะกลางคืน),ยอดเงินสด (รวม),ยอดโอน QR (รวม),รายได้รวม (บาท)\n";
+            csvContent += "วันที่ (รอบบัญชี),กะกลางวัน (รวม),กะกลางวัน (เงินสด),กะกลางวัน (QR),กะกลางคืน (รวม),กะกลางคืน (เงินสด),กะกลางคืน (QR),เช็คอินรวม,เช็คเอาท์รวม,จองรวม,ยอดมัดจำรวม,ยอดเงินทั้งวัน\n";
 
             dates.forEach(date => {
                 const d = incomeData[date];
-                csvContent += `${date},${d.shift1_chk||0},${d.shift1_out||0},${d.shift1},${d.shift2_chk||0},${d.shift2_out||0},${d.shift2},${d.cash||0},${d.qr||0},${d.total}\n`;
+                const s1 = d.shift1 || {total:0,cash:0,qr:0};
+                const s2 = d.shift2 || {total:0,cash:0,qr:0};
+                csvContent += `${date},${s1.total},${s1.cash},${s1.qr},${s2.total},${s2.cash},${s2.qr},${d.checkins},${d.checkouts},${d.newBooks},${d.depositTotal},${d.total}\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
