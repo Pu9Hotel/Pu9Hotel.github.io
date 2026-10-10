@@ -671,7 +671,21 @@
                 // Auth Observer จะสลับหน้าจอให้อัตโนมัติ
             } catch (err) {
                 console.error("Login failed:", err);
-                alertBox.innerText = "เข้าสู่ระบบไม่สำเร็จ: " + (err.code === 'auth/invalid-credential' ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' : err.message);
+                let msg = err.code || err.message;
+                if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+                    msg = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง';
+                } else if (err.code === 'auth/invalid-email') {
+                    msg = 'รูปแบบอีเมลไม่ถูกต้อง (ต้องเป็นรูปแบบอีเมลเต็ม เช่น staff@hotel.com มี @ และ .com)';
+                } else if (err.code === 'auth/unauthorized-domain') {
+                    msg = 'โดเมนเว็บไซต์นี้ยังไม่ได้รับอนุญาตใน Firebase! (วิธีแก้: ไปที่ Firebase Console > Authentication > Settings > Authorized domains แล้วกด Add domain ใส่ "' + window.location.hostname + '")';
+                } else if (err.code === 'auth/operation-not-allowed') {
+                    msg = 'ยังไม่ได้เปิดสวิตช์ Email/Password ใน Firebase Console (ไปที่ Authentication > Sign-in method แล้วกดเปิด Enable)';
+                } else if (err.code === 'auth/too-many-requests') {
+                    msg = 'กรอกรหัสผ่านผิดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่';
+                } else {
+                    msg = err.message + ' (' + err.code + ')';
+                }
+                alertBox.innerText = "เข้าสู่ระบบไม่สำเร็จ: " + msg;
                 alertBox.classList.remove('d-none');
             } finally {
                 btn.disabled = false;
