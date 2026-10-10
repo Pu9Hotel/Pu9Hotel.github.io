@@ -185,7 +185,7 @@
                 อีเมลหรือรหัสผ่านไม่ถูกต้อง
             </div>
 
-            <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+            <form id="loginForm" onsubmit="event.preventDefault(); handleLoginSubmit(event);">
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-secondary">อีเมลผู้ใช้งาน (Staff Email)</label>
                     <div class="input-group">
@@ -1062,8 +1062,7 @@
             const bookings = roomsData[currentRoom] || [];
             const isConflict = bookings.some(b => (cin < b.cout && cout > b.cin));
             if(isConflict) {
-                return alert("❌ ไม่สามารถบันทึกได้!
-ช่วงเวลาที่คุณเลือกมีการจองทับซ้อนกับคิวอื่นในระบบ กรุณาเลือกวันอื่น");
+                return alert("❌ ไม่สามารถบันทึกได้! กรุณาเลือกวันอื่น (มีการจองทับซ้อน)");
             }
 
             const newBooking = {
