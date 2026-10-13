@@ -95,6 +95,41 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
 
+    
+        
+
+        /* Housekeeping Status Pill (สีเขียว / สีแดง / สีเหลือง) */
+        .clean-pill {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+            display: inline-block;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s ease;
+            border: 1.5px solid rgba(255,255,255,0.9);
+            margin: 2px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+        }
+        .clean-pill:active {
+            transform: scale(0.92);
+        }
+        .clean-clean { background-color: #198754; color: #ffffff; } /* ห้องสะอาด (สีเขียว) */
+        .clean-dirty { background-color: #dc3545; color: #ffffff; } /* รอทำความสะอาด (สีแดง) */
+        .clean-cleaning { background-color: #ffc107; color: #000000; } /* กำลังทำความสะอาด (สีเหลือง) */
+        
+        .hk-btn-group .btn {
+            font-size: 0.78rem;
+            padding: 4px 8px;
+            font-weight: 600;
+        }
+
+        .crm-toast {
+            background: #ecfdf5; border: 1px solid #10b981; color: #065f46;
+            border-radius: 8px; padding: 6px 12px; font-size: 0.8rem;
+        }
+
     </style>
 </head>
 <body>
@@ -180,6 +215,7 @@
                         <li class="nav-item"><button class="nav-link filter-btn active fw-bold rounded-pill px-3" onclick="setStatusFilter('all', this)">ทั้งหมด</button></li>
                         <li class="nav-item"><button class="nav-link filter-btn fw-bold rounded-pill px-3 text-success" onclick="setStatusFilter('available', this)">ว่าง</button></li>
                         <li class="nav-item"><button class="nav-link filter-btn fw-bold rounded-pill px-3 text-danger" onclick="setStatusFilter('occupied', this)">จอง/พัก</button></li>
+                        <li class="nav-item"><button class="nav-link filter-btn fw-bold rounded-pill px-3 text-danger" onclick="setStatusFilter('dirty', this)">รอทำความสะอาด</button></li>
                     </ul>
                 </div>
 
@@ -189,6 +225,7 @@
                         <input type="text" id="searchInput" class="form-control border-0 bg-white" placeholder="ค้นหาชื่อ, เบอร์..." onkeyup="filterRooms()">
                     </div>
                     <button class="btn btn-warning btn-sm shadow-sm rounded-pill px-3 text-dark fw-bold" onclick="openSummaryModal()"><i class="bi bi-wallet2"></i> สรุปรายได้</button>
+                    <button class="btn btn-white btn-sm shadow-sm rounded-pill px-3 fw-bold border text-purple" style="color: #6f42c1; background: #fff;" onclick="openHousekeepingModal()"><i class="bi bi-brush"></i> จัดการความสะอาด</button>
                     <div class="dropdown">
                         <button class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown"><i class="bi bi-hdd-stack-fill"></i> ข้อมูล</button>
                         <ul class="dropdown-menu shadow border-0 rounded-3">
@@ -297,6 +334,47 @@
         </div>
     </div>
 
+    
+    <!-- Modal: พิมพ์ใบเสร็จรับเงิน / สลิป (Receipt Modal) -->
+    
+    <!-- Modal: จัดการสถานะทำความสะอาดแยกเฉพาะ (Housekeeping Management Modal) -->
+    <div class="modal fade" id="housekeepingModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow border-0 rounded-4">
+                <div class="modal-header bg-light border-0 rounded-top-4 p-3 px-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-purple" style="color: #6f42c1;"><i class="bi bi-brush me-2"></i> จัดการสถานะความสะอาดห้องพัก</h5>
+                        <small class="text-muted">เปลี่ยนสถานะความสะอาดได้ทันทีโดยไม่ต้องเปิดหน้าจอง</small>
+                    </div>
+                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <!-- Summary Stats Bar -->
+                    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-4 p-3 bg-white rounded-3 border shadow-sm">
+                        <div class="d-flex flex-wrap gap-3 small fw-bold">
+                            <span class="text-success"><i class="bi bi-check-circle-fill"></i> ห้องสะอาด: <span id="hk-count-clean">0</span></span>
+                            <span class="text-danger"><i class="bi bi-x-circle-fill"></i> รอทำความสะอาด: <span id="hk-count-dirty">0</span></span>
+                            <span class="text-warning text-dark"><i class="bi bi-exclamation-circle-fill"></i> กำลังทำความสะอาด: <span id="hk-count-cleaning">0</span></span>
+                        </div>
+                        <button class="btn btn-sm btn-outline-success rounded-pill fw-bold" onclick="markAllAvailableClean()">
+                            ปรับห้องว่างทั้งหมดเป็น "สะอาด"
+                        </button>
+                    </div>
+
+                    <!-- Room List by Building -->
+                    <h6 class="fw-bold text-secondary mb-2"><i class="bi bi-building"></i> อาคาร 1</h6>
+                    <div class="row g-2 mb-4" id="hk-building1-list"></div>
+
+                    <h6 class="fw-bold text-secondary mb-2"><i class="bi bi-building"></i> อาคาร 2</h6>
+                    <div class="row g-2" id="hk-building2-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    </div>
+
     <div class="modal fade" id="roomModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content shadow border-0 rounded-4">
@@ -335,16 +413,21 @@
                                     </div>
                                 </div>
 
-                                <div class="row g-3 bg-white border p-3 rounded-4 shadow-sm mb-4" id="formInputsBox">
-                                    <div class="col-md-4"><label class="small text-muted">ชื่อ-นามสกุล</label><input type="text" id="guestName" class="form-control" placeholder="ระบุชื่อ"></div>
-                                    <div class="col-md-4"><label class="small text-muted">เบอร์โทร (10 หลัก)</label><input type="text" id="guestPhone" class="form-control" placeholder="เบอร์โทรศัพท์" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+                                
+                                <div id="crmAlertBox" class="crm-toast mb-3 d-none d-flex justify-content-between align-items-center">
+                                    <div><i class="bi bi-stars text-success me-1"></i> <span id="crmAlertText">พบข้อมูลลูกค้าเก่า</span></div>
+                                    <button class="btn btn-sm btn-success py-0 px-2 fw-bold" onclick="applyCrmData()">ดึงข้อมูลอัตโนมัติ</button>
+                                </div>
+<div class="row g-3 bg-white border p-3 rounded-4 shadow-sm mb-4" id="formInputsBox">
+                                    <div class="col-md-4"><label class="small text-muted">ชื่อ-นามสกุล</label><input type="text" id="guestName" class="form-control" placeholder="ระบุชื่อ" list="customerNameList"></div>
+                                    <div class="col-md-4"><label class="small text-muted">เบอร์โทร (10 หลัก)</label><input type="text" id="guestPhone" class="form-control" placeholder="เบอร์โทรศัพท์" maxlength="10" list="customerPhoneList" oninput="handlePhoneInput(this)"></div>
                                     <div class="col-md-4"><label class="small text-muted">เลข ปชช. / นิติบุคคล</label><input type="text" id="guestIdCard" class="form-control" placeholder="ไม่บังคับ" oninput="this.value = this.value.replace(/[^0-9A-Za-z-]/g, '')"></div>
                                     
                                     <hr class="my-1 opacity-25">
                                     
                                     <div class="col-md-4"><label class="small fw-bold">ราคาห้อง/คืน (บาท)</label><input type="number" id="roomPrice" class="form-control text-primary fw-bold" value="0" min="0" oninput="calcFormPrice()"></div>
-                                    <div class="col-md-4"><label class="small fw-bold">วันที่เข้า (Check-in)</label><input type="date" id="cin" class="form-control" onchange="calcFormPrice()"></div>
-                                    <div class="col-md-4"><label class="small fw-bold">วันที่ออก (Check-out)</label><input type="date" id="cout" class="form-control" onchange="calcFormPrice()"></div>
+                                    <div class="col-md-4"><label class="small fw-bold">วันที่เข้า (Check-in)</label><input type="date" id="cin" class="form-control" onchange="handleCinChange()"></div>
+                                    <div class="col-md-4"><label class="small fw-bold">วันที่ออก (Check-out)</label><input type="date" id="cout" class="form-control" onchange="handleCoutChange()"></div>
 
                                     <div class="col-md-4"><label class="small text-success">เตียงเสริม (150บ. สูงสุด 3)</label><input type="number" id="extraBed" class="form-control" value="0" min="0" max="3" oninput="calcFormPrice()"></div>
                                     <div class="col-md-4"><label class="small text-info">สัตว์เลี้ยง (100บ./ตัว)</label><input type="number" id="pets" class="form-control" value="0" min="0" oninput="calcFormPrice()"></div>
@@ -424,7 +507,8 @@
                                                 </select>
                                             </div>
                                             
-                                            <button class="btn btn-danger w-100 fw-bold shadow-sm py-2 fs-6 rounded-pill" id="btnCheckout" onclick="checkout()">Check-out ห้องพัก</button>
+                                            <button class="btn btn-danger w-100 fw-bold shadow-sm py-2 fs-6 rounded-pill mb-2" id="btnCheckout" onclick="checkout()">Check-out ห้องพัก</button>
+                                            
                                         </div>
                                     </div>
                                     
@@ -499,15 +583,19 @@
 
         let roomsData = JSON.parse(localStorage.getItem('hotel_queue_rooms')) || {};
         let incomeData = JSON.parse(localStorage.getItem('hotel_queue_income')) || {};
+        let roomMeta = JSON.parse(localStorage.getItem('hotel_room_meta')) || {};
+        let customerData = JSON.parse(localStorage.getItem('hotel_customers')) || {};
         
         let currentRoom = null;
         let editingBookingId = null; 
         let activeFilter = 'all'; 
         let calDate = new Date();
         let unsubscribeFirestore = null;
+        let pendingCrmMatch = null;
 
         let roomModalObj = null;
         let summaryModalObj = null;
+        let housekeepingModalObj = null;
 
         function getRoomModal() {
             if (!roomModalObj) {
@@ -525,7 +613,15 @@
             return summaryModalObj;
         }
 
-        // ไมเกรตโครงสร้างข้อมูลรายได้ (Income Data Migration)
+        function getHousekeepingModal() {
+            if (!housekeepingModalObj) {
+                const el = document.getElementById('housekeepingModal');
+                if (el) housekeepingModalObj = new bootstrap.Modal(el);
+            }
+            return housekeepingModalObj;
+        }
+
+        // ไมเกรตโครงสร้างข้อมูลรายได้
         function migrateIncomeData() {
             for(let key in incomeData) {
                 if(typeof incomeData[key] === 'number') {
@@ -546,7 +642,6 @@
         }
         migrateIncomeData();
 
-        // ฟังก์ชันตัดคำนำหน้า และเอาเฉพาะชื่อแรก
         function getShortName(fullName) {
             if (!fullName) return '';
             let parts = fullName.trim().split(/\s+/);
@@ -609,16 +704,48 @@
             }
         }
 
-        // เริ่มต้นการทำงาน (Initialize)
+        function syncCustomerDatabase() {
+            allRooms.forEach(room => {
+                const bookings = roomsData[room] || [];
+                bookings.forEach(b => {
+                    if (b.phone && b.phone.length === 10) {
+                        if (!customerData[b.phone]) {
+                            customerData[b.phone] = { name: b.name, idCard: b.idCard || '', phone: b.phone, visits: 1 };
+                        }
+                    }
+                });
+            });
+            updateCustomerDatalist();
+        }
+
+        function updateCustomerDatalist() {
+            const phoneList = document.getElementById('customerPhoneList');
+            const nameList = document.getElementById('customerNameList');
+            if (!phoneList || !nameList) return;
+
+            let pOptions = '';
+            let nOptions = '';
+            for (let ph in customerData) {
+                const c = customerData[ph];
+                pOptions += `<option value="${c.phone}">${c.name} (${c.visits || 1} ครั้ง)</option>`;
+                nOptions += `<option value="${c.name}">${c.phone}</option>`;
+            }
+            phoneList.innerHTML = pOptions;
+            nameList.innerHTML = nOptions;
+        }
+
         function init() {
-            allRooms.forEach(room => { if(!roomsData[room]) roomsData[room] = []; });
+            allRooms.forEach(room => { 
+                if(!roomsData[room]) roomsData[room] = []; 
+                if(!roomMeta[room]) roomMeta[room] = { cleaning: 'clean' };
+            });
+            syncCustomerDatabase();
             const { dateStr } = getAccountingShift();
             const picker = document.getElementById('summaryDatePicker');
             if (picker) picker.value = dateStr;
             refreshAll();
         }
 
-        // ซิงค์ข้อมูล Realtime ผ่าน Firebase Firestore
         function initRealtimeSync() {
             if (unsubscribeFirestore) return;
 
@@ -630,16 +757,25 @@
                     const data = docSnap.data();
                     roomsData = data.rooms || {};
                     incomeData = data.income || {};
+                    roomMeta = data.roomMeta || {};
+                    customerData = data.customers || {};
                     
-                    allRooms.forEach(room => { if(!roomsData[room]) roomsData[room] = []; });
+                    allRooms.forEach(room => { 
+                        if(!roomsData[room]) roomsData[room] = []; 
+                        if(!roomMeta[room]) roomMeta[room] = { cleaning: 'clean' };
+                    });
                     migrateIncomeData();
+                    updateCustomerDatalist();
 
                     if (pulse) pulse.className = "pulse-online";
                     if (text) text.innerText = "ออนไลน์ (" + new Date().toLocaleTimeString('th-TH') + ")";
                     
                     refreshAll();
                 } else {
-                    allRooms.forEach(room => { if(!roomsData[room]) roomsData[room] = []; });
+                    allRooms.forEach(room => { 
+                        if(!roomsData[room]) roomsData[room] = []; 
+                        if(!roomMeta[room]) roomMeta[room] = { cleaning: 'clean' };
+                    });
                     saveToCloud();
                     if (pulse) pulse.className = "pulse-online";
                     if (text) text.innerText = "สร้างฐานข้อมูลเริ่มต้นสำเร็จ";
@@ -658,10 +794,14 @@
             try {
                 localStorage.setItem('hotel_queue_rooms', JSON.stringify(roomsData));
                 localStorage.setItem('hotel_queue_income', JSON.stringify(incomeData));
+                localStorage.setItem('hotel_room_meta', JSON.stringify(roomMeta));
+                localStorage.setItem('hotel_customers', JSON.stringify(customerData));
 
                 await setDoc(hotelDocRef, {
                     rooms: roomsData,
                     income: incomeData,
+                    roomMeta: roomMeta,
+                    customers: customerData,
                     lastUpdated: new Date().toISOString()
                 });
             } catch (err) {
@@ -669,19 +809,23 @@
             }
         }
 
-        async function save() {
+        function save() {
             localStorage.setItem('hotel_queue_rooms', JSON.stringify(roomsData));
             localStorage.setItem('hotel_queue_income', JSON.stringify(incomeData));
-            await saveToCloud();
+            localStorage.setItem('hotel_room_meta', JSON.stringify(roomMeta));
+            localStorage.setItem('hotel_customers', JSON.stringify(customerData));
+            saveToCloud();
         }
 
         function refreshAll() {
             renderGrid();
             renderTimeline();
             updateStats();
+            if (document.getElementById('housekeepingModal')?.classList.contains('show')) {
+                renderHousekeepingList();
+            }
         }
 
-        // จัดการสิทธิ์ผู้ใช้งาน (Owner vs Staff)
         function applyUserRole(userEmail) {
             const email = (userEmail || "").toLowerCase();
             const isOwner = email.includes('owner') || email.includes('admin');
@@ -701,7 +845,6 @@
             }
         }
 
-        // ตรวจสอบการเข้าสู่ระบบ
         onAuthStateChanged(auth, (user) => {
             const loginSection = document.getElementById('loginSection');
             const mainAppSection = document.getElementById('mainAppSection');
@@ -722,7 +865,6 @@
             }
         });
 
-        // จัดการส่งฟอร์มล็อกอิน
         window.handleLoginSubmit = async function(e) {
             if (e && e.preventDefault) e.preventDefault();
             const email = document.getElementById('loginEmail').value.trim();
@@ -769,17 +911,13 @@
             }
         };
 
-        // ฟังก์ชันระบบห้องพักและส่วนแสดงผล
         window.setStatusFilter = function(status, btnElement) {
             activeFilter = status;
             const btns = document.querySelectorAll('.filter-btn');
             btns.forEach(b => {
                 b.classList.remove('active');
-                if(b.dataset.filter === 'available') b.classList.add('text-success');
-                if(b.dataset.filter === 'occupied') b.classList.add('text-danger');
             });
             btnElement.classList.add('active');
-            btnElement.classList.remove('text-success', 'text-danger');
             filterRooms();
         };
 
@@ -794,6 +932,7 @@
                 const active = bookings.find(b => b.cin <= today && b.cout > today);
                 const hasFuture = bookings.some(b => b.cin > today);
                 const isOccupiedOrReserved = active || hasFuture;
+                const cleanState = (roomMeta[roomNum] && roomMeta[roomNum].cleaning) || 'clean';
 
                 const isMatchSearch = keyword === "" || bookings.some(b => 
                     b.name.toLowerCase().includes(keyword) || 
@@ -804,6 +943,7 @@
                 let isMatchFilter = true;
                 if(activeFilter === 'available') isMatchFilter = !isOccupiedOrReserved;
                 if(activeFilter === 'occupied') isMatchFilter = isOccupiedOrReserved;
+                if(activeFilter === 'dirty') isMatchFilter = (!active && cleanState === 'dirty');
 
                 card.style.display = (isMatchSearch && isMatchFilter) ? "block" : "none";
             });
@@ -838,19 +978,133 @@
                 else if (active.paymentMode === 'none') payBadgeHtml = `<span style="${badgeStyle}; background-color: #495057;" class="text-white">ยังไม่จ่าย</span>`; 
             }
 
+            // ป้ายสถานะทำความสะอาด (เรียงลำดับ: 1.ห้องสะอาด(เขียว) 2.รอทำความสะอาด(แดง) 3.กำลังทำความสะอาด(เหลือง))
+            let cleanPillHtml = '';
+            if (!active) {
+                const cState = (roomMeta[roomNum] && roomMeta[roomNum].cleaning) || 'clean';
+                let cLabel = 'ห้องสะอาด';
+                let cClass = 'clean-clean'; // เขียว
+                
+                if (cState === 'dirty') {
+                    cLabel = 'รอทำความสะอาด';
+                    cClass = 'clean-dirty'; // แดง
+                } else if (cState === 'cleaning') {
+                    cLabel = 'กำลังทำความสะอาด';
+                    cClass = 'clean-cleaning'; // เหลือง
+                }
+
+                cleanPillHtml = `<span class="clean-pill ${cClass}" onclick="event.stopPropagation(); window.quickCycleCleaning('${roomNum}')" title="คลิกเพื่อสลับสถานะทำความสะอาด">${cLabel}</span>`;
+            }
+
             return `
                 <div class="col-6 col-md-3 col-lg-2 room-card-wrapper" data-room="${roomNum}">
                     <div class="room-card ${statusClass} p-2 text-center shadow-sm" onclick="openRoom('${roomNum}')">
                         ${twinBadgeHtml}
                         ${topRightBadges}
-                        <h4 class="fw-bold mb-0 mt-2">${roomNum}</h4>
-                        <i class="bi ${icon} fs-2 opacity-75 my-1"></i>
+                        <h4 class="fw-bold mb-0 mt-1">${roomNum}</h4>
+                        ${cleanPillHtml}
+                        <i class="bi ${icon} fs-3 opacity-75 my-1"></i>
                         <div class="small fw-bold text-truncate w-100 px-1 mb-1">${displayName}</div>
                         ${payBadgeHtml}
                     </div>
                 </div>
             `;
         }
+
+        // คลิกเดียวเปลี่ยนทันที (ห้องสะอาด(เขียว) -> รอทำความสะอาด(แดง) -> กำลังทำความสะอาด(เหลือง) -> ห้องสะอาด)
+        window.quickCycleCleaning = function(roomNum) {
+            const current = (roomMeta[roomNum] && roomMeta[roomNum].cleaning) || 'clean';
+            let next = 'clean';
+            
+            // ลำดับการสลับสถานะ: 1. clean -> 2. dirty -> 3. cleaning -> 1. clean
+            if (current === 'clean') next = 'dirty';
+            else if (current === 'dirty') next = 'cleaning';
+            else if (current === 'cleaning') next = 'clean';
+
+            if (!roomMeta[roomNum]) roomMeta[roomNum] = {};
+            roomMeta[roomNum].cleaning = next;
+            
+            // อัปเดตการแสดงผลบนหน้าจอทันที (ไม่ต้องรอเน็ต ทำให้คลิกครั้งเดียวเห็นผลทันที)
+            refreshAll();
+            
+            // บันทึกขึ้น Cloud
+            save();
+        };
+
+        // หน้าต่างจัดการสถานะทำความสะอาดแยกเฉพาะ
+        window.openHousekeepingModal = function() {
+            renderHousekeepingList();
+            getHousekeepingModal().show();
+        };
+
+        function renderHousekeepingList() {
+            let countClean = 0, countCleaning = 0, countDirty = 0;
+            const today = getTodayStr();
+
+            const renderHkCard = (room) => {
+                const bookings = roomsData[room] || [];
+                const active = bookings.find(b => b.cin <= today && b.cout > today);
+                const cState = (roomMeta[room] && roomMeta[room].cleaning) || 'clean';
+
+                if (cState === 'clean') countClean++;
+                else if (cState === 'cleaning') countCleaning++;
+                else if (cState === 'dirty') countDirty++;
+
+                const activeLabel = active ? '<span class="badge bg-danger py-1">มีคนพัก</span>' : '<span class="badge bg-success py-1">ว่าง</span>';
+
+                return `
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="p-2 border rounded-3 bg-white shadow-sm d-flex flex-column gap-1">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <b class="text-primary fs-6">${room}</b>
+                                ${activeLabel}
+                            </div>
+                            <div class="btn-group btn-group-sm hk-btn-group w-100" role="group">
+                                <button type="button" class="btn ${cState==='clean'?'btn-success text-white fw-bold':'btn-outline-success'}" onclick="window.setHousekeepingForRoom('${room}', 'clean')">ห้องสะอาด</button>
+                                <button type="button" class="btn ${cState==='dirty'?'btn-danger text-white fw-bold':'btn-outline-danger'}" onclick="window.setHousekeepingForRoom('${room}', 'dirty')">รอทำความสะอาด</button>
+                                <button type="button" class="btn ${cState==='cleaning'?'btn-warning text-dark fw-bold':'btn-outline-warning text-dark'}" onclick="window.setHousekeepingForRoom('${room}', 'cleaning')">กำลังทำความสะอาด</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            const b1 = document.getElementById('hk-building1-list');
+            const b2 = document.getElementById('hk-building2-list');
+            if (b1) b1.innerHTML = bldg1.map(renderHkCard).join('');
+            if (b2) b2.innerHTML = bldg2.map(renderHkCard).join('');
+
+            const lblClean = document.getElementById('hk-count-clean');
+            const lblCleaning = document.getElementById('hk-count-cleaning');
+            const lblDirty = document.getElementById('hk-count-dirty');
+            if (lblClean) lblClean.innerText = countClean;
+            if (lblCleaning) lblCleaning.innerText = countCleaning;
+            if (lblDirty) lblDirty.innerText = countDirty;
+        }
+
+        window.setHousekeepingForRoom = function(room, status) {
+            if (!roomMeta[room]) roomMeta[room] = {};
+            roomMeta[room].cleaning = status;
+            refreshAll();
+            renderHousekeepingList();
+            save();
+        };
+
+        window.markAllAvailableClean = function() {
+            const today = getTodayStr();
+            allRooms.forEach(room => {
+                const bookings = roomsData[room] || [];
+                const active = bookings.find(b => b.cin <= today && b.cout > today);
+                if (!active) {
+                    if (!roomMeta[room]) roomMeta[room] = {};
+                    roomMeta[room].cleaning = 'clean';
+                }
+            });
+            refreshAll();
+            renderHousekeepingList();
+            save();
+            alert("✅ ปรับสถานะห้องว่างทั้งหมดเป็น 'ห้องสะอาด' เรียบร้อยแล้ว");
+        };
 
         function renderGrid() {
             const b1 = document.getElementById('building1-container');
@@ -906,6 +1160,36 @@
             container.innerHTML = html;
         }
 
+        // --- ระบบตรวจสอบและล็อกวันเข้าพัก / วันออก (Date Validation) ---
+        window.handleCinChange = function() {
+            const cin = document.getElementById('cin').value;
+            const coutInput = document.getElementById('cout');
+            if (cin) {
+                const nextDay = new Date(cin);
+                nextDay.setDate(nextDay.getDate() + 1);
+                const minCoutStr = getTodayStr(nextDay);
+
+                // วันออกต้องไม่สามารถเลือกวันก่อนหน้าหรือวันเดียวกันได้
+                coutInput.min = minCoutStr;
+                if (!coutInput.value || coutInput.value <= cin) {
+                    coutInput.value = minCoutStr;
+                }
+            }
+            calcFormPrice();
+        };
+
+        window.handleCoutChange = function() {
+            const cin = document.getElementById('cin').value;
+            const coutInput = document.getElementById('cout');
+            if (cin && coutInput.value && coutInput.value <= cin) {
+                alert("❌ วันที่ Check-out ต้องอยู่หลังจากวันที่ Check-in อย่างน้อย 1 วัน");
+                const nextDay = new Date(cin);
+                nextDay.setDate(nextDay.getDate() + 1);
+                coutInput.value = getTodayStr(nextDay);
+            }
+            calcFormPrice();
+        };
+
         window.toggleFormMode = function() {
             const mode = document.querySelector('input[name="actionType"]:checked').value;
             const cinInput = document.getElementById('cin');
@@ -926,7 +1210,7 @@
                 paySectionTitle.innerHTML = '<i class="bi bi-cash-coin"></i> การชำระเงินมัดจำล่วงหน้า (ถ้ามี)';
                 initialPayAmountLabel.innerText = 'ยอดมัดจำ (บาท)';
             }
-            calcFormPrice();
+            window.handleCinChange();
         };
 
         window.calcFormPrice = function() {
@@ -979,12 +1263,38 @@
             document.getElementById('formRemainDisplay').innerText = `฿${(remain < 0 ? 0 : remain).toLocaleString()}`;
         };
 
+        // ระบบค้นหาและ Auto-fill ลูกค้าเก่า (CRM)
+        window.handlePhoneInput = function(inputEl) {
+            const val = inputEl.value.trim();
+            const alertBox = document.getElementById('crmAlertBox');
+            const alertText = document.getElementById('crmAlertText');
+            
+            pendingCrmMatch = null;
+            if (val.length >= 9 && customerData[val]) {
+                const c = customerData[val];
+                pendingCrmMatch = c;
+                alertText.innerHTML = `พบข้อมูลลูกค้าเก่า: <b>คุณ${c.name}</b> (เข้าพักแล้ว ${c.visits || 1} ครั้ง)`;
+                alertBox.classList.remove('d-none');
+            } else {
+                alertBox.classList.add('d-none');
+            }
+        };
+
+        window.applyCrmData = function() {
+            if (!pendingCrmMatch) return;
+            document.getElementById('guestName').value = pendingCrmMatch.name;
+            if (pendingCrmMatch.idCard) {
+                document.getElementById('guestIdCard').value = pendingCrmMatch.idCard;
+            }
+            document.getElementById('crmAlertBox').classList.add('d-none');
+        };
+
         window.openRoom = function(roomNum) {
             currentRoom = roomNum; editingBookingId = null; cancelEditMode(); 
 
             let twinLabel = twinBeds.includes(roomNum) ? ' <span class="badge bg-pink" style="background-color: var(--twin); font-size:0.8rem;">เตียงคู่</span>' : '';
             document.getElementById('modalTitle').innerHTML = `<i class="bi bi-door-open"></i> จัดการห้อง ${roomNum}${twinLabel}`;
-            
+
             const todayStr = getTodayStr();
             const bookings = roomsData[roomNum] || [];
             const active = bookings.find(b => b.cin <= todayStr && b.cout > todayStr);
@@ -1087,12 +1397,10 @@
             document.getElementById('guestName').value = ""; document.getElementById('guestPhone').value = ""; document.getElementById('guestIdCard').value = "";
             document.getElementById('roomPrice').value = 0; document.getElementById('extraBed').value = 0; document.getElementById('pets').value = 0;
             document.getElementById('initialPayMode').value = 'all'; document.getElementById('initialPayAmount').value = 0;
+            document.getElementById('crmAlertBox').classList.add('d-none');
             
-            document.getElementById('typeCheckin').checked = true; toggleFormMode();
-            
-            let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-            document.getElementById('cout').value = tomorrow.toISOString().split('T')[0];
-            calcFormPrice();
+            document.getElementById('typeCheckin').checked = true; 
+            toggleFormMode();
 
             getRoomModal().show();
         };
@@ -1121,6 +1429,10 @@
             document.getElementById('cin').removeAttribute('max');
             document.getElementById('cin').removeAttribute('min'); 
             
+            const nextDay = new Date(booking.cin);
+            nextDay.setDate(nextDay.getDate() + 1);
+            document.getElementById('cout').min = getTodayStr(nextDay);
+
             calcFormPrice();
             
             document.getElementById('bookingFormSection').scrollIntoView({ behavior: 'smooth' });
@@ -1140,7 +1452,8 @@
             document.getElementById('guestName').value = ""; document.getElementById('guestPhone').value = ""; document.getElementById('guestIdCard').value = "";
             document.getElementById('roomPrice').value = 0; document.getElementById('extraBed').value = 0; document.getElementById('pets').value = 0;
             document.getElementById('initialPayAmount').value = 0;
-            document.getElementById('typeCheckin').checked = true; toggleFormMode(); calcFormPrice();
+            document.getElementById('crmAlertBox').classList.add('d-none');
+            document.getElementById('typeCheckin').checked = true; toggleFormMode();
         };
 
         window.saveBookingData = async function() {
@@ -1150,19 +1463,31 @@
             let extraBed = parseInt(document.getElementById('extraBed').value) || 0; if(extraBed>3) extraBed=3;
             const pets = parseInt(document.getElementById('pets').value) || 0;
             
+            if(!name) return alert("กรุณาระบุชื่อลูกค้า");
+            if(phone && phone.length !== 10) return alert("❌ กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก");
+            if(!cin || !cout || cout <= cin) return alert("❌ วันที่ Check-out ต้องอยู่หลังจากวันที่ Check-in อย่างน้อย 1 วัน");
+
             let total = 0; let nights = 1;
             if(cin && cout && cout > cin) nights = Math.ceil((new Date(cout) - new Date(cin)) / 86400000);
             total = (price + (extraBed * 150) + (pets * 100)) * nights;
-
-            if(!name) return alert("กรุณาระบุชื่อลูกค้า");
-            if(phone && phone.length !== 10) return alert("❌ กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก");
-            if(!cin || !cout || cin >= cout) return alert("วันที่ Check-out ต้องอยู่หลังจากวันที่ Check-in");
 
             const isConflict = roomsData[currentRoom].some(b => {
                 if (editingBookingId && b.id === editingBookingId) return false; 
                 return (cin < b.cout && cout > b.cin);
             });
             if(isConflict) return alert("❌ ไม่สามารถบันทึกได้! มีการจอง/เข้าพักทับซ้อนในช่วงวันที่เลือก");
+
+            if (phone && phone.length === 10) {
+                const existing = customerData[phone] || { visits: 0 };
+                customerData[phone] = {
+                    name: name,
+                    idCard: idCard || existing.idCard || '',
+                    phone: phone,
+                    visits: (existing.visits || 0) + (editingBookingId ? 0 : 1),
+                    lastSeen: cin
+                };
+                updateCustomerDatalist();
+            }
 
             if (editingBookingId) {
                 const index = roomsData[currentRoom].findIndex(b => b.id === editingBookingId);
@@ -1178,7 +1503,9 @@
                 roomsData[currentRoom][index] = { ...b, name, phone, idCard, cin, cout, price, extraBed, pets, total };
                 alert("บันทึกการแก้ไขข้อมูลเรียบร้อย");
                 roomsData[currentRoom].sort((a, b) => a.cin.localeCompare(b.cin));
-                await save(); refreshAll(); getRoomModal().hide();
+                refreshAll(); 
+                getRoomModal().hide();
+                save(); 
             } else {
                 const paidAmount = parseInt(document.getElementById('initialPayAmount').value) || 0;
                 const mode = document.querySelector('input[name="actionType"]:checked').value;
@@ -1194,18 +1521,20 @@
                 
                 if(mode === 'checkin') {
                     recordDailyEvent('checkin', paidAmount, payMethod);
-                    await save(); refreshAll();
+                    refreshAll();
                     getRoomModal().hide();
+                    save();
                 } else {
                     recordDailyEvent('reserve', paidAmount, payMethod);
-                    await save(); refreshAll();
+                    refreshAll();
+                    save();
                     alert("✅ จองห้องพักเรียบร้อยแล้ว");
                     openRoom(currentRoom); 
                 }
             }
         };
 
-        window.receiveAdditionalPayment = async function() {
+        window.receiveAdditionalPayment = function() {
             const amount = parseInt(document.getElementById('additionalPayAmount').value);
             const payMethod = document.getElementById('additionalPayMethod').value;
             if(!amount || amount <= 0) return alert("กรุณาระบุจำนวนเงินที่รับชำระ");
@@ -1217,35 +1546,46 @@
                 b.paidAmount = (b.paidAmount || 0) + amount;
                 
                 recordDailyEvent('payment_only', amount, payMethod);
-                await save(); openRoom(currentRoom); refreshAll(); 
+                refreshAll(); 
+                openRoom(currentRoom); 
+                save();
                 alert(`✅ บันทึกรับชำระเงิน ${amount.toLocaleString()} บาท เรียบร้อยแล้ว`);
             }
         };
 
-        window.checkout = async function() {
+        window.checkout = function() {
             const activeId = document.getElementById('activeGuestBox').dataset.activeId;
             const b = roomsData[currentRoom].find(b => b.id === activeId);
             if(!b) return;
 
             let remain = b.total - (b.paidAmount || 0);
             remain = remain < 0 ? 0 : remain;
+            let chosenPayMethod = 'cash';
 
             if(remain > 0) {
                 const payMethodText = document.getElementById('checkoutMethod').options[document.getElementById('checkoutMethod').selectedIndex].text;
-                const payMethodVal = document.getElementById('checkoutMethod').value;
+                chosenPayMethod = document.getElementById('checkoutMethod').value;
                 if(!confirm(`มีค้างชำระ: ฿${remain.toLocaleString()}\nยืนยันการรับเงินผ่าน ${payMethodText} และ Check-out?`)) return;
                 
-                recordDailyEvent('checkout', remain, payMethodVal);
+                recordDailyEvent('checkout', remain, chosenPayMethod);
             } else {
                 if(!confirm(`ยืนยันการ Check-out ลูกค้าห้องนี้?`)) return;
                 recordDailyEvent('checkout', 0, 'cash');
             }
-            
-            roomsData[currentRoom] = roomsData[currentRoom].filter(b => b.id !== activeId);
-            await save(); refreshAll(); getRoomModal().hide();
+
+            // ปรับสถานะห้องเป็น "รอทำความสะอาด" (dirty) ทันทีหลังเช็คเอาต์
+            if (!roomMeta[currentRoom]) roomMeta[currentRoom] = {};
+            roomMeta[currentRoom].cleaning = 'dirty';
+
+            roomsData[currentRoom] = roomsData[currentRoom].filter(item => item.id !== activeId);
+            refreshAll(); 
+            getRoomModal().hide();
+            save();
+
+            alert(`✅ ทำการ Check-out ห้อง ${currentRoom} เรียบร้อยแล้ว (สถานะห้องเปลี่ยนเป็น "รอทำความสะอาด")`);
         };
 
-        window.cancelBooking = async function(bookingId) {
+        window.cancelBooking = function(bookingId) {
             const b = roomsData[currentRoom].find(b => b.id === bookingId);
             if(!b) return;
             if(!confirm("ต้องการลบคิวจองนี้ใช่หรือไม่?")) return;
@@ -1260,7 +1600,9 @@
             }
 
             roomsData[currentRoom] = roomsData[currentRoom].filter(x => x.id !== bookingId);
-            await save(); openRoom(currentRoom); refreshAll();
+            refreshAll(); 
+            openRoom(currentRoom); 
+            save();
         };
 
         function updateStats() {
@@ -1356,7 +1698,12 @@
         };
 
         window.exportData = function() {
-            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({ rooms: roomsData, income: incomeData }, null, 2));
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({ 
+                rooms: roomsData, 
+                income: incomeData, 
+                roomMeta: roomMeta, 
+                customers: customerData 
+            }, null, 2));
             const link = document.createElement('a'); link.href = dataUri; link.download = 'HotelBackup_' + getTodayStr() + '.json'; link.click();
         };
 
@@ -1369,8 +1716,10 @@
                     if (d.rooms && d.income) { 
                         roomsData = d.rooms; 
                         incomeData = d.income; 
-                        await save(); 
+                        roomMeta = d.roomMeta || {};
+                        customerData = d.customers || {};
                         refreshAll(); 
+                        save(); 
                         alert("✅ กู้คืนข้อมูลสำเร็จ และซิงค์ขึ้น Cloud เรียบร้อย!"); 
                     } 
                     else alert("❌ ไฟล์ไม่ถูกต้อง");
@@ -1380,6 +1729,10 @@
             reader.readAsText(file);
         };
     </script>
+
+
+    <datalist id="customerPhoneList"></datalist>
+    <datalist id="customerNameList"></datalist>
 
 </body>
 </html>
