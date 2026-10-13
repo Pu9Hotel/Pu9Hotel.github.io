@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>เอกสารนำเสนอระบบ Hotel System PRO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0d6efd; --primary-dark: #0a58ca;
+            --success: #198754; --danger: #dc3545;
+            --warning: #ffc107; --purple: #6f42c1;
+            --bg-light: #f8fafc;
+        }
+        body { font-family: 'Prompt', sans-serif; background-color: var(--bg-light); color: #334155; line-height: 1.6; }
+        .hero { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 60px 0 50px; }
+        .feature-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 25px; transition: all 0.25s ease; height: 100%; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0,0,0,0.1); border-color: #cbd5e1; }
+        .feature-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 15px; }
+        .badge-pill-custom { padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 0.75rem; }
+        .table-custom th { background: #f1f5f9; font-weight: 600; }
+        .toc-link { color: #475569; text-decoration: none; font-weight: 500; display: block; padding: 6px 12px; border-radius: 8px; transition: 0.2s; }
+        .toc-link:hover { background: #e2e8f0; color: #0f172a; }
+        .highlight-box { background: #eff6ff; border-left: 4px solid var(--primary); padding: 15px 20px; border-radius: 0 12px 12px 0; }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Header -->
+    <div class="hero">
+        <div class="container text-center">
+            <span class="badge bg-primary px-3 py-2 rounded-pill mb-3 fw-bold text-uppercase"><i class="bi bi-buildings-fill me-1"></i> Presentation & Proposal Document</span>
+            <h1 class="fw-bold mb-2 display-5">ระบบบริหารจัดการโรงแรม Hotel System PRO</h1>
+            <p class="lead opacity-75 mb-4 mx-auto" style="max-width: 750px;">
+                ระบบบริหารห้องพัก เชื่อมต่อ Cloud Realtime 24 ชั่วโมง ออกแบบมาสำหรับโรงแรม 2 อาคาร (26 ห้อง) รองรับงานต้อนรับและบัญชีแยกกะอย่างสมบูรณ์
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a href="index.html" class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow-sm text-dark"><i class="bi bi-box-arrow-up-right me-1"></i> เปิดเข้าใช้งานระบบจริง</a>
+                <a href="#features" class="btn btn-outline-light px-4 py-2 rounded-pill"><i class="bi bi-list-check me-1"></i> ดูรายละเอียดฟังก์ชัน</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="row g-4">
+            
+            <!-- Quick Info Cards -->
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon bg-primary bg-opacity-10 text-primary mx-auto"><i class="bi bi-cloud-check-fill"></i></div>
+                    <h5 class="fw-bold mb-1">Cloud Realtime Sync</h5>
+                    <p class="text-muted small mb-0">ข้อมูลอัปเดตอัตโนมัติแบบเสี้ยววินาทีระหว่างคอมเคาน์เตอร์และมือถือเจ้าของ ผ่าน Firebase Cloud</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon bg-success bg-opacity-10 text-success mx-auto"><i class="bi bi-cash-stack"></i></div>
+                    <h5 class="fw-bold mb-1">ฟรีค่าเซิร์ฟเวอร์ 100%</h5>
+                    <p class="text-muted small mb-0">ทำงานผ่าน GitHub Pages + Firebase Spark Plan ไม่มีค่าบริการรายเดือนสำหรับโรงแรม 26 ห้อง</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon bg-purple bg-opacity-10 text-purple mx-auto" style="color: #6f42c1; background: #f3e8ff;"><i class="bi bi-shield-lock-fill"></i></div>
+                    <h5 class="fw-bold mb-1">ระบบความปลอดภัย & สิทธิ์</h5>
+                    <p class="text-muted small mb-0">ล็อกอินด้วยรหัสผ่าน แยกสิทธิ์ เจ้าของ (ดูยอดเงิน/รายงาน) และ พนักงาน (จัดการห้องพัก)</p>
+                </div>
+            </div>
+
+            <!-- Detailed Presentation Sections -->
+            <div class="col-12" id="features">
+                <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
+                    <h3 class="fw-bold text-dark mb-4 border-bottom pb-3"><i class="bi bi-grid-1x2-fill text-primary me-2"></i> 1. โครงสร้างห้องพักและอาคาร (2 อาคาร 26 ห้อง)</h3>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-light">
+                                <h6 class="fw-bold text-primary mb-2"><i class="bi bi-building"></i> อาคาร 1 (จำนวน 10 ห้อง)</h6>
+                                <p class="small text-muted mb-2">ประกอบด้วยห้องหมายเลข:</p>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <span class="badge bg-white text-dark border">2-1</span>
+                                    <span class="badge bg-white text-dark border">3-1</span>
+                                    <span class="badge bg-white text-dark border">4-1</span>
+                                    <span class="badge bg-white text-dark border">5-1</span>
+                                    <span class="badge bg-white text-dark border">6-1</span>
+                                    <span class="badge bg-white text-dark border">7-1</span>
+                                    <span class="badge bg-white text-dark border">9-1</span>
+                                    <span class="badge bg-white text-dark border">10-1</span>
+                                    <span class="badge bg-white text-dark border">11-1</span>
+                                    <span class="badge bg-white text-dark border">12-1</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-light">
+                                <h6 class="fw-bold text-primary mb-2"><i class="bi bi-building"></i> อาคาร 2 (จำนวน 16 ห้อง)</h6>
+                                <p class="small text-muted mb-2">ประกอบด้วยห้องหมายเลข (พร้อมป้ายเตียงคู่):</p>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <span class="badge bg-white text-dark border">1-2</span>
+                                    <span class="badge bg-white text-dark border">2-2</span>
+                                    <span class="badge bg-white text-dark border">3-2</span>
+                                    <span class="badge bg-white text-dark border">4-2</span>
+                                    <span class="badge bg-white text-dark border">5-2</span>
+                                    <span class="badge bg-white text-dark border">6-2</span>
+                                    <span class="badge bg-white text-dark border">7-2</span>
+                                    <span class="badge bg-danger text-white">8-2 (เตียงคู่)</span>
+                                    <span class="badge bg-danger text-white">9-2 (เตียงคู่)</span>
+                                    <span class="badge bg-danger text-white">11-2 (เตียงคู่)</span>
+                                    <span class="badge bg-danger text-white">12-2 (เตียงคู่)</span>
+                                    <span class="badge bg-white text-dark border">13-2</span>
+                                    <span class="badge bg-white text-dark border">14-2</span>
+                                    <span class="badge bg-white text-dark border">15-2</span>
+                                    <span class="badge bg-white text-dark border">16-2</span>
+                                    <span class="badge bg-white text-dark border">17-2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="fw-bold text-dark mb-4 border-bottom pb-3 mt-4"><i class="bi bi-brush-fill text-purple me-2" style="color: #6f42c1;"></i> 2. ระบบสถานะทำความสะอาดห้องพัก (Housekeeping)</h3>
+                    <p>ระบบสถานะความสะอาดถูกออกแบบให้ใช้งานง่าย รวดเร็ว และแยกออกจากหน้าจองห้องพักอย่างชัดเจน:</p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded-3 border-success border-2 bg-white">
+                                <span class="badge bg-success mb-2">ห้องสะอาด (สีเขียว)</span>
+                                <p class="small text-muted mb-0">ห้องสะอาดเรียบร้อย พร้อมเปิดรับลูกค้าเข้าพักได้ทันที</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded-3 border-danger border-2 bg-white">
+                                <span class="badge bg-danger mb-2">รอทำความสะอาด (สีแดง)</span>
+                                <p class="small text-muted mb-0">ระบบจะปรับเป็นสถานะนี้อัตโนมัติทันทีเมื่อลูกค้า Check-out</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded-3 border-warning border-2 bg-white">
+                                <span class="badge bg-warning text-dark mb-2">กำลังทำความสะอาด (สีเหลือง)</span>
+                                <p class="small text-muted mb-0">แม่บ้านกำลังเข้าทำความสะอาดห้องพัก</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="highlight-box mb-4">
+                        <b>จุดเด่น:</b> สามารถแตะสลับสถานะความสะอาดบนการ์ดห้องพักได้ทันทีใน 1 คลิก (วนลูป สะอาด -> รอทำ -> กำลังทำ) โดยไม่บังข้อความ "ว่างพร้อมใช้" หรือจะเปิดหน้าต่าง "จัดการความสะอาด" เพื่อดูและปรับสถานะทุกห้องพร้อมกันในหน้าเดียวก็ได้
+                    </div>
+
+                    <h3 class="fw-bold text-dark mb-4 border-bottom pb-3 mt-4"><i class="bi bi-calendar2-check-fill text-success me-2"></i> 3. ระบบจองห้องพัก เช็คอิน และ CRM ลูกค้าเก่า</h3>
+                    <ul class="mb-4">
+                        <li class="mb-2"><b>ระบบล็อกวัน Check-out:</b> เมื่อเลือกวันเข้าพัก ระบบจะล็อกไม่ให้เลือกวันออกก่อนหน้าหรือวันเดียวกัน ป้องกันข้อผิดพลาด 100%</li>
+                        <li class="mb-2"><b>ระบบป้องกันการจองซ้อน (Conflict Prevention):</b> ลอจิกตรวจสอบช่วงเวลาอัจฉริยะ ป้องกันการบันทึกทับซ้อนกับคิวเดิม</li>
+                        <li class="mb-2"><b>คิดราคาเตียงเสริมและสัตว์เลี้ยง:</b> เตียงเสริม (+150 บาท สูงสุด 3 เตียง) และ สัตว์เลี้ยง (+100 บาท/ตัว)</li>
+                        <li class="mb-2"><b>CRM ลูกค้าเก่า & Auto-fill:</b> เพียงพิมพ์เบอร์โทรศัพท์ ระบบจะดึงชื่อและเลขบัตร ปชช. ของลูกค้าเก่าที่เคยมาพักมาใส่ให้อัตโนมัติ</li>
+                        <li class="mb-2"><b>รูปแบบชำระเงินยืดหยุ่น:</b> จ่ายทั้งหมด, จ่ายรายวัน, จ่ายบางส่วน/มัดจำ, หรือค้างชำระ</li>
+                    </ul>
+
+                    <h3 class="fw-bold text-dark mb-4 border-bottom pb-3 mt-4"><i class="bi bi-wallet2 text-warning me-2"></i> 4. ระบบบัญชีรายวันและตัดรอบแยกกะ (Shift Accounting)</h3>
+                    <p>ระบบคำนวณและตัดรอบบัญชีอัตโนมัติตามเวลาจริง:</p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-light">
+                                <h6 class="fw-bold text-info"><i class="bi bi-sun-fill me-1"></i> กะกลางวัน (Day Shift)</h6>
+                                <p class="small text-muted mb-0">เวลา 06.30 น. - 16.29 น. สรุปยอดเงินสด / เงินโอน QR และสถิติเข้าพัก</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-light">
+                                <h6 class="fw-bold text-warning"><i class="bi bi-moon-fill me-1"></i> กะกลางคืน (Night Shift)</h6>
+                                <p class="small text-muted mb-0">เวลา 16.30 น. - 06.29 น. (ของอีกวัน) สรุปยอดเงินแยกกะอย่างแม่นยำ</p>
+                            </div>
+                        </div>
+                    </div>
+                    <ul>
+                        <li><b>รายงานรอบบัญชี (Daily Report):</b> สรุปยอดรวมทั้งวัน, กะกลางวัน, กะกลางคืน พร้อมยอดเงินสดและโอน QR</li>
+                        <li><b>ส่งออก Excel (CSV):</b> ดาวน์โหลดรายงานบัญชีเป็นไฟล์ Excel ภาษาไทยสมบูรณ์แบบได้ในคลิกเดียว</li>
+                    </ul>
+
+                    <h3 class="fw-bold text-dark mb-4 border-bottom pb-3 mt-4"><i class="bi bi-chat-left-dots-fill text-info me-2"></i> 5. หัวข้อสำหรับเปิดรับความคิดเห็นเพื่อพัฒนาต่อยอด (Discussion Topics)</h3>
+                    <div class="p-3 bg-light rounded-3 border">
+                        <ol class="mb-0">
+                            <li class="mb-2"><b>การจัดหน้าตาบนมือถือ (Mobile UI Optimization):</b> ออกแบบการจัดวางและขนาดฟอนต์บนหน้าจอมือถือให้ใช้งานง่ายยิ่งขึ้นตามความเห็นของผู้ใช้งานจริง</li>
+                            <li class="mb-2"><b>รูปแบบใบเสร็จรับเงิน (Receipt Template):</b> กำหนดแพทเทิร์นและขนาด (สลิป 80mm หรือ A4) ก่อนนำระบบพิมพ์กลับมาใส่</li>
+                            <li class="mb-2"><b>ระบบแจ้งเตือนอัตโนมัติ (Telegram Bot):</b> นำระบบบอทแจ้งเตือนฟรี 100% มาส่งข้อความเข้ากลุ่มเจ้าของเมื่อมี เช็คอิน/เช็คเอาต์/สรุปกะ</li>
+                            <li><b>ระบบบันทึกค่าใช้จ่ายโรงแรม:</b> บันทึกรายจ่ายประจำวันเพื่อคำนวณกำไรสุทธิ</li>
+                        </ol>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 text-center mt-5">
+        <div class="container">
+            <p class="mb-1 fw-bold">Hotel System PRO — Smart UI & Cloud Realtime</p>
+            <p class="small text-muted mb-0">ระบบบริหารจัดการห้องพักโรงแรมออนไลน์ 24 ชั่วโมง</p>
+        </div>
+    </footer>
+
+</body>
+</html>
